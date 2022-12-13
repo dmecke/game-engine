@@ -16,5 +16,5 @@ npm install @dmecke/game-engine
 
 ### Publish new version to NPM
 ```shell
-yarn run publish
+yarn publish --access=public
 ```
