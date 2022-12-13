@@ -1,4 +1,4 @@
-import {Area} from '../../../src';
+import Area from '../../../src/Math/Area';
 import Vector from '../../../src/Math/Vector';
 
 describe('Area', () => {

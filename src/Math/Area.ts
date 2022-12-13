@@ -1,7 +1,7 @@
 import Rng from './Rng';
 import Vector from './Vector';
 
-export class Area {
+export default class Area {
     constructor(
         readonly position: Vector,
         readonly size: Vector,

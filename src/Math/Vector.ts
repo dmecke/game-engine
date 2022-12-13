@@ -1,4 +1,4 @@
-import {Area} from './Area';
+import Area from './Area';
 import Circle from './Circle';
 import lerp from './lerp';
 import radToDeg from './radToDeg';
