@@ -1,6 +1,6 @@
 {
     "name": "@dmecke/game-engine",
-    "version": "1.0.17",
+    "version": "1.0.18",
     "description": "A TypeScript game engine",
     "author": "Daniel Mecke",
     "license": "MIT",
