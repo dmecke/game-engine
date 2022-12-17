@@ -1,13 +1,12 @@
+import LocalStorage from '../Storage/LocalStorage';
+
 export default class Debug {
     private static KEY = 'debug';
 
     private readonly settings: Record<string, unknown> = {};
 
     constructor() {
-        const data = window.localStorage.getItem(Debug.KEY);
-        if (data) {
-            this.settings = JSON.parse(data);
-        }
+        this.settings = LocalStorage.load(Debug.KEY, {}) as Record<string, unknown>;
     }
 
     get(key: string): unknown {
@@ -16,10 +15,6 @@ export default class Debug {
 
     set(key: string, value: unknown): void {
         this.settings[key] = value;
-        this.save();
-    }
-
-    private save(): void {
-        window.localStorage.setItem(Debug.KEY, JSON.stringify(this.settings));
+        LocalStorage.save(Debug.KEY, this.settings);
     }
 }
