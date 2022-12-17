@@ -16,6 +16,9 @@
         "ecmaVersion": 8,
         "sourceType": "module"
     },
+    "ignorePatterns": [
+        "/src/LDtk/quicktype.ts"
+    ],
     "rules": {
         "sort-imports": "error",
         "indent": ["error", 4, {
