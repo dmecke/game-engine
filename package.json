@@ -1,6 +1,6 @@
 {
     "name": "@dmecke/game-engine",
-    "version": "1.0.28",
+    "version": "1.0.29",
     "description": "A TypeScript game engine",
     "author": "Daniel Mecke",
     "license": "MIT",
@@ -30,12 +30,14 @@
     "dependencies": {
         "howler": "^2.2.3",
         "nanoid": "^4.0.0",
+        "pathfinding": "^0.4.18",
         "seedrandom": "^3.0.5"
     },
     "devDependencies": {
         "@types/howler": "^2.2.7",
         "@types/jest": "^29.2.4",
         "@types/node": "^18.8.3",
+        "@types/pathfinding": "^0.0.6",
         "@typescript-eslint/eslint-plugin": "^5.46.1",
         "@typescript-eslint/parser": "^5.46.1",
         "eslint": "^8.29.0",
