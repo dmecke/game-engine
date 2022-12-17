@@ -2,13 +2,9 @@
 const seedrandom = require('seedrandom');
 
 export default class Rng {
-    private static _instance = new Rng();
+    static readonly instance = new Rng();
 
     private readonly rng: CallableFunction;
-
-    static get instance(): Rng {
-        return this._instance;
-    }
 
     private constructor() {
         this.rng = seedrandom(Math.random().toString());

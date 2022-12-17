@@ -2,14 +2,10 @@ import Event from './Event';
 import ListenerId from './ListenerId';
 
 export default class EventBus {
-    private static _instance = new EventBus();
+    static readonly instance = new EventBus();
     private subscribers: Map<string, Map<ListenerId, { priority: number, callback: (event: Event) => void }>> = new Map();
 
     private constructor() {}
-
-    static get instance(): EventBus {
-        return EventBus._instance;
-    }
 
     subscribe(name: string, callback: (event: Event) => void, priority = 100): ListenerId {
         if (!this.subscribers.has(name)) {
