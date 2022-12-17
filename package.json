@@ -28,10 +28,12 @@
         "url": "https://github.com/dmecke/game-engine/issues"
     },
     "dependencies": {
+        "howler": "^2.2.3",
         "nanoid": "^4.0.0",
         "seedrandom": "^3.0.5"
     },
     "devDependencies": {
+        "@types/howler": "^2.2.7",
         "@types/jest": "^29.2.4",
         "@types/node": "^18.8.3",
         "@typescript-eslint/eslint-plugin": "^5.46.1",
