@@ -1,5 +1,5 @@
-import Area from '../../../src/Math/Area';
-import Vector from '../../../src/Math/Vector';
+import Area from '../../src/Math/Area';
+import Vector from '../../src/Math/Vector';
 
 describe('Area', () => {
     it('should create an Area object with the given position and size', () => {

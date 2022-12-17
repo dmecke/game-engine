@@ -1,4 +1,4 @@
-import lerp from '../../../src/Math/lerp';
+import lerp from '../../src/Math/lerp';
 
 describe('lerp', () => {
     it('should return the correct interpolated value between a and b', () => {

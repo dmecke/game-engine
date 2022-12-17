@@ -1,4 +1,4 @@
-import Color from '../../../src/Canvas/Color';
+import Color from '../../src/Canvas/Color';
 
 describe('Color', () => {
     it('should convert the color to a hex string', () => {

@@ -1,4 +1,4 @@
-import Vector from '../../../src/Math/Vector';
+import Vector from '../../src/Math/Vector';
 
 describe('Vector', () => {
     it('should return a null vector', () => {

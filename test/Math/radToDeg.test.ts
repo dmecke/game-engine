@@ -1,4 +1,4 @@
-import radToDeg from '../../../src/Math/radToDeg';
+import radToDeg from '../../src/Math/radToDeg';
 
 describe('radToDeg', () => {
     it('converts radians to degrees', () => {

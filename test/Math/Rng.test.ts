@@ -1,4 +1,4 @@
-import Rng from '../../../src/Math/Rng';
+import Rng from '../../src/Math/Rng';
 
 describe('Rng', () => {
     it('should create a new instance of Rng', () => {

@@ -1,4 +1,4 @@
-import Range from '../../../src/Math/Range';
+import Range from '../../src/Math/Range';
 
 describe('Range', () => {
     it('throws an error if min value is greater than max value', () => {

@@ -1,5 +1,5 @@
-import CanvasSprite from '../../../src/Canvas/CanvasSprite';
-import Vector from '../../../src/Math/Vector';
+import CanvasSprite from '../../src/Canvas/CanvasSprite';
+import Vector from '../../src/Math/Vector';
 
 describe('CanvasSprite', () => {
     it('should draw the sprite on the canvas', () => {

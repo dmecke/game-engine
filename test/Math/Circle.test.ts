@@ -1,5 +1,5 @@
-import Circle from '../../../src/Math/Circle';
-import Vector from '../../../src/Math/Vector';
+import Circle from '../../src/Math/Circle';
+import Vector from '../../src/Math/Vector';
 
 describe('Circle', () => {
     it('has a diameter equal to twice its radius', () => {

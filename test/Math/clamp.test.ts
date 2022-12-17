@@ -1,4 +1,4 @@
-import clamp from '../../../src/Math/clamp';
+import clamp from '../../src/Math/clamp';
 
 describe('clamp', () => {
     it('should return the value if it is within the range of min and max', () => {
