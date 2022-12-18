@@ -9,6 +9,10 @@ export default class ImageLoader {
 
     static loadImages(images: string[]): Promise<void> {
         return new Promise(resolve => {
+            if (images.length === 0) {
+                resolve();
+            }
+
             let loaded = 0;
             for (const image of images) {
                 const img = new Image();

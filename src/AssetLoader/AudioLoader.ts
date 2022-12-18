@@ -8,6 +8,10 @@ export default class AudioLoader {
 
     static loadFiles(files: string[]): Promise<void> {
         return new Promise(resolve => {
+            if (files.length === 0) {
+                resolve();
+            }
+
             let loaded = 0;
             for (const file of files) {
                 const howl = new Howl({
