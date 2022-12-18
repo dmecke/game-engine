@@ -3,7 +3,7 @@ export default interface State<T> {
 
     enter?(entity: T, data: unknown): void;
 
-    update?(entity: T): void;
+    update?(entity: T, delta: number): void;
 
     render?(entity: T): void;
 

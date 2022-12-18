@@ -23,9 +23,9 @@ export default class StateMachine<T> {
         this.log(`starting in state "${startingStateName}"`);
     }
 
-    update(): void {
+    update(delta: number): void {
         if (this._state.update) {
-            this._state.update(this.entity);
+            this._state.update(this.entity, delta);
         }
     }
 
