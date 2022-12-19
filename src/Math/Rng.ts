@@ -19,7 +19,7 @@ export default class Rng {
     }
 
     randomIntBetween(min: number, max: number): number {
-        return Math.floor(this.rng() * (max - min)) + min;
+        return Math.floor(this.rng() * (max - min + 1)) + min;
     }
 
     randomFloatBetween(min: number, max: number): number {

@@ -30,15 +30,25 @@ describe('Rng', () => {
 
     it('should return a random integer between the given min and max values', () => {
         const min = 1;
-        const max = 10;
+        const max = 3;
+        const amounts = [];
+        amounts[1] = 0;
+        amounts[2] = 0;
+        amounts[3] = 0;
+        const loops = 10000;
 
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < loops; i++) {
             const result = Rng.instance.randomIntBetween(min, max);
+            amounts[result]++;
 
             expect(result).toBeGreaterThanOrEqual(min);
             expect(result).toBeLessThanOrEqual(max);
             expect(result).toEqual(Math.floor(result));
         }
+
+        expect(amounts[1] / loops).toBeCloseTo(1 / 3, 1);
+        expect(amounts[2] / loops).toBeCloseTo(1 / 3, 1);
+        expect(amounts[3] / loops).toBeCloseTo(1 / 3, 1);
     });
 
     it('should return a random float between the given min and max values', () => {
