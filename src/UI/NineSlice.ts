@@ -1,12 +1,10 @@
+import NineSliceMargin from './NineSliceMargin';
 import Vector from '../Math/Vector';
 
 export default class NineSlice {
     constructor(
         private readonly image: HTMLImageElement,
-        private readonly left: number,
-        private readonly right: number,
-        private readonly top: number,
-        private readonly bottom: number,
+        private readonly margin: NineSliceMargin,
         private readonly position: Vector,
         private readonly size: Vector,
     ) {
@@ -16,6 +14,22 @@ export default class NineSlice {
         this.drawCorners(ctx);
         this.drawEdges(ctx);
         this.drawMiddle(ctx);
+    }
+
+    private get left(): number {
+        return this.margin.left;
+    }
+
+    private get right(): number {
+        return this.margin.right;
+    }
+
+    private get top(): number {
+        return this.margin.top;
+    }
+
+    private get bottom(): number {
+        return this.margin.bottom;
     }
 
     private drawCorners(ctx: CanvasRenderingContext2D): void {
