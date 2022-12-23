@@ -3,10 +3,10 @@ import Viewport from './Viewport';
 
 export default class Canvas {
     readonly canvas: HTMLCanvasElement;
+    private readonly nativeResolution: Vector;
 
     constructor(
         id: string,
-        private readonly nativeResolution: Vector,
         private maxScale: number,
     ) {
         const canvas = document.getElementById(id) as HTMLCanvasElement|null;
@@ -14,6 +14,11 @@ export default class Canvas {
             throw new Error(`Could not find a canvas with id ${id}.`);
         }
         this.canvas = canvas;
+
+        this.nativeResolution = new Vector(
+            parseInt(canvas.getAttribute('width')?.replace('px', '') ?? '') ?? 320,
+            parseInt(canvas.getAttribute('height')?.replace('px', '') ?? '') ?? 180,
+        );
 
         window.addEventListener('resize', () => this.resize());
         this.resize();
