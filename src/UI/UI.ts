@@ -5,6 +5,7 @@ import Mouse from '../Input/Mouse';
 import NineSlice from './NineSlice';
 import NineSliceMargin from './NineSliceMargin';
 import PressedState from '../Input/PressedState';
+import TextAlign from '../Font/TextAlign';
 import TextButton from './TextButton';
 import Vector from '../Math/Vector';
 
@@ -92,8 +93,8 @@ export default class UI {
         return new NineSlice(this.panelImage, this.panelMargin, area);
     }
 
-    createLabel(text: string, position: Vector): Label {
-        return new Label(this.font, text, position);
+    createLabel(text: string, position: Vector, align: TextAlign = TextAlign.left): Label {
+        return new Label(this.font, text, position, align);
     }
 
     createTextButton(label: string, position: Vector, callback: () => void): TextButton {
