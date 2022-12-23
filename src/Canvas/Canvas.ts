@@ -1,7 +1,8 @@
 import Vector from '../Math/Vector';
+import Viewport from './Viewport';
 
 export default class Canvas {
-    private readonly canvas: HTMLCanvasElement;
+    readonly canvas: HTMLCanvasElement;
 
     constructor(
         id: string,
@@ -21,6 +22,10 @@ export default class Canvas {
     resize(): void {
         this.canvas.style.width = `${this.width}px`;
         this.canvas.style.height = `${this.height}px`;
+    }
+
+    get viewport(): Viewport {
+        return new Viewport(this.nativeResolution);
     }
 
     private get size(): Vector {

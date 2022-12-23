@@ -1,10 +1,11 @@
+import Canvas from '../Canvas/Canvas';
 import ListenerId from './ListenerId';
 import MouseListener from './MouseListener';
 import Vector from '../Math/Vector';
 
 declare global {
     interface Window {
-        canvas: HTMLCanvasElement;
+        canvas: Canvas;
     }
 }
 
@@ -165,13 +166,13 @@ export default class Mouse {
     }
 
     private calculatePosition(event: MouseEvent): Vector {
-        if (window.canvas.clientWidth === 0) {
+        if (window.canvas.canvas.clientWidth === 0) {
             return Vector.null();
         }
 
         return new Vector(
-            event.clientX - window.canvas.getBoundingClientRect().left,
-            event.clientY - window.canvas.getBoundingClientRect().top,
-        ).divide(window.canvas.clientWidth / window.canvas.width).floor();
+            event.clientX - window.canvas.canvas.getBoundingClientRect().left,
+            event.clientY - window.canvas.canvas.getBoundingClientRect().top,
+        ).divide(window.canvas.canvas.clientWidth / window.canvas.canvas.width).floor();
     }
 }
