@@ -28,6 +28,15 @@ export default class Canvas {
         return new Viewport(this.nativeResolution);
     }
 
+    get ctx(): CanvasRenderingContext2D {
+        const ctx = this.canvas.getContext('2d');
+        if (ctx === null) {
+            throw new Error('Could not create context 2d.');
+        }
+
+        return ctx;
+    }
+
     private get size(): Vector {
         for (let scale = this.maxScale; scale >= 1; scale--) {
             if (window.innerWidth >= this.nativeResolution.multiply(scale).x) {
