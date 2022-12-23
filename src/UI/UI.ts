@@ -1,3 +1,4 @@
+import Area from '../Math/Area';
 import Font from '../Font/Font';
 import Label from './Label';
 import Mouse from '../Input/Mouse';
@@ -87,8 +88,8 @@ export default class UI {
         return this._panelMargin;
     }
 
-    createPanel(position: Vector, size: Vector): NineSlice {
-        return new NineSlice(this.panelImage, this.panelMargin, position, size);
+    createPanel(area: Area): NineSlice {
+        return new NineSlice(this.panelImage, this.panelMargin, area);
     }
 
     createLabel(text: string, position: Vector): Label {
