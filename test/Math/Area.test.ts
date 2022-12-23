@@ -61,6 +61,28 @@ describe('Area', () => {
         expect(() => area.divide(0)).toThrow('Cannot divide by zero.');
     });
 
+    it('should return a new expanded area', () => {
+        const position = new Vector(3, 5);
+        const size = new Vector(3, 4);
+        const area = new Area(position, size);
+
+        const result = area.expand(new Vector(2, 4));
+
+        expect(result.position).toEqual(new Vector(2, 3));
+        expect(result.size).toEqual(new Vector(5, 8));
+    });
+
+    it('should return a new shrinked area', () => {
+        const position = new Vector(3, 5);
+        const size = new Vector(6, 8);
+        const area = new Area(position, size);
+
+        const result = area.shrink(new Vector(2, 4));
+
+        expect(result.position).toEqual(new Vector(4, 7));
+        expect(result.size).toEqual(new Vector(4, 4));
+    });
+
     it('should return a new Area with the position values floored', () => {
         const area = new Area(new Vector(1.5, 2.5), new Vector(3.5, 4.5));
         const floored = area.floor();

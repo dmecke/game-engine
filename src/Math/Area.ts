@@ -37,6 +37,14 @@ export default class Area {
         )
     }
 
+    expand(amount: Vector): Area {
+        return new Area(this.position.subtract(amount.divide(2)), this.size.add(amount));
+    }
+
+    shrink(amount: Vector): Area {
+        return new Area(this.position.add(amount.divide(2)), this.size.subtract(amount));
+    }
+
     floor(): Area {
         return new Area(
             this.position.floor(),
