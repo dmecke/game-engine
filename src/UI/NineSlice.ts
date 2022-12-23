@@ -1,29 +1,48 @@
-import ImageLoader from '../AssetLoader/ImageLoader';
 import Vector from '../Math/Vector';
 
 export default class NineSlice {
     constructor(
-        readonly sprite: string,
-        readonly left: number,
-        readonly right: number,
-        readonly top: number,
-        readonly bottom: number,
+        private readonly image: HTMLImageElement,
+        private readonly left: number,
+        private readonly right: number,
+        private readonly top: number,
+        private readonly bottom: number,
+        private readonly position: Vector,
+        private readonly size: Vector,
     ) {
     }
 
-    draw(position: Vector, size: Vector, ctx: CanvasRenderingContext2D): void {
-        const image = ImageLoader.instance.getImage(this.sprite);
+    draw(ctx: CanvasRenderingContext2D): void {
+        this.drawCorners(ctx);
+        this.drawEdges(ctx);
+        this.drawMiddle(ctx);
+    }
 
-        ctx.drawImage(image, 0, 0, this.left, this.top, position.x, position.y, this.left, this.top); // top left
-        ctx.drawImage(image, image.width - this.right, 0, this.right, this.top, position.x + size.x - this.right, position.y, this.right, this.top); // top right
-        ctx.drawImage(image, 0, image.height - this.bottom, this.left, this.bottom, position.x, position.y + size.y - this.bottom, this.left, this.bottom); // bottom left
-        ctx.drawImage(image, image.width - this.right, image.height - this.bottom, this.right, this.bottom, position.x + size.x - this.right, position.y + size.y - this.bottom, this.right, this.bottom); // bottom right
+    private drawCorners(ctx: CanvasRenderingContext2D): void {
+        ctx.drawImage(this.image, 0, 0, this.left, this.top, this.position.x, this.position.y, this.left, this.top); // top left
+        ctx.drawImage(this.image, this.image.width - this.right, 0, this.right, this.top, this.position.x + this.size.x - this.right, this.position.y, this.right, this.top); // top right
+        ctx.drawImage(this.image, 0, this.image.height - this.bottom, this.left, this.bottom, this.position.x, this.position.y + this.size.y - this.bottom, this.left, this.bottom); // bottom left
+        ctx.drawImage(this.image, this.image.width - this.right, this.image.height - this.bottom, this.right, this.bottom, this.position.x + this.size.x - this.right, this.position.y + this.size.y - this.bottom, this.right, this.bottom); // bottom right
+    }
 
-        ctx.drawImage(image, this.left, 0, image.width - this.left - this.right, this.top, position.x + this.left, position.y, size.x - this.left - this.right, this.top); // top
-        ctx.drawImage(image, this.left, image.height - this.bottom, image.width - this.left - this.right, this.bottom, position.x + this.left, position.y + size.y - this.bottom, size.x - this.left - this.right, this.bottom); // bottom
-        ctx.drawImage(image, 0, this.top, this.left, image.height - this.top - this.bottom, position.x, position.y + this.top, this.left, size.y - this.top - this.bottom); // left
-        ctx.drawImage(image, image.width - this.right, this.top, this.right, image.height - this.top - this.bottom, position.x + size.x - this.right, position.y + this.top, this.right, size.y - this.top - this.bottom); // right
+    private drawEdges(ctx: CanvasRenderingContext2D): void {
+        ctx.drawImage(this.image, this.left, 0, this.image.width - this.left - this.right, this.top, this.position.x + this.left, this.position.y, this.size.x - this.left - this.right, this.top); // top
+        ctx.drawImage(this.image, this.left, this.image.height - this.bottom, this.image.width - this.left - this.right, this.bottom, this.position.x + this.left, this.position.y + this.size.y - this.bottom, this.size.x - this.left - this.right, this.bottom); // bottom
+        ctx.drawImage(this.image, 0, this.top, this.left, this.image.height - this.top - this.bottom, this.position.x, this.position.y + this.top, this.left, this.size.y - this.top - this.bottom); // left
+        ctx.drawImage(this.image, this.image.width - this.right, this.top, this.right, this.image.height - this.top - this.bottom, this.position.x + this.size.x - this.right, this.position.y + this.top, this.right, this.size.y - this.top - this.bottom); // right
+    }
 
-        ctx.drawImage(image, this.left, this.top, image.width - this.left - this.right, image.height - this.top - this.bottom, position.x + this.left, position.y + this.top, size.x - this.left - this.right, size.y - this.top - this.bottom); // middle
+    private drawMiddle(ctx: CanvasRenderingContext2D): void {
+        ctx.drawImage(
+            this.image,
+            this.left,
+            this.top,
+            this.image.width - this.left - this.right,
+            this.image.height - this.top - this.bottom,
+            this.position.x + this.left,
+            this.position.y + this.top,
+            this.size.x - this.left - this.right,
+            this.size.y - this.top - this.bottom,
+        );
     }
 }

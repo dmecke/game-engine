@@ -6,7 +6,7 @@ import Vector from '../Math/Vector';
 
 export default class Font {
     private position = Vector.null();
-    private align = TextAlign.left;
+    private _align = TextAlign.left;
     private _width = new Map<string, number>();
     private _wrap: number|null = null;
     private _text = '';
@@ -30,20 +30,26 @@ export default class Font {
         return this;
     }
 
+    align(alignment: TextAlign): this {
+        this._align = alignment;
+
+        return this;
+    }
+
     alignLeft(): this {
-        this.align = TextAlign.left;
+        this._align = TextAlign.left;
 
         return this;
     }
 
     alignRight(): this {
-        this.align = TextAlign.right;
+        this._align = TextAlign.right;
 
         return this;
     }
 
     alignCenter(): this {
-        this.align = TextAlign.center;
+        this._align = TextAlign.center;
 
         return this;
     }
@@ -83,7 +89,7 @@ export default class Font {
     }
 
     private get xStart(): number {
-        switch (this.align) {
+        switch (this._align) {
             case TextAlign.left:
                 return this.position.x;
 
@@ -102,7 +108,7 @@ export default class Font {
                 }
         }
 
-        throw new Error(`Invalid text align: "${this.align}".`);
+        throw new Error(`Invalid text align: "${this._align}".`);
     }
 
     private getGlyph(char: string): Glyph {
