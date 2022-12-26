@@ -6,6 +6,8 @@ import PressedState from '../Input/PressedState';
 import Vector from '../Math/Vector';
 
 export default class TextButton {
+    selected = false;
+
     constructor(
         private readonly font: Font,
         private readonly image: HTMLImageElement,
@@ -25,17 +27,23 @@ export default class TextButton {
             this.position.subtractX(this.size.x / 2),
         ).draw(ctx);
         this.font.alignCenter().at(this.position.addY(4).addY(this.textOffset)).text(this.label).draw(ctx);
-        if (this.isTriggered) {
+        if (this.isClicked) {
             this.callback();
         }
     }
 
+    trigger(): void {
+        this.callback();
+    }
+
     private get offset(): Vector {
+        const x = this.selected ? this.size.x : 0;
+
         if (!this.isHovered) {
-            return Vector.null();
+            return new Vector(x, 0);
         }
 
-        return this.mouseState.permanent ? new Vector(0, 32) : new Vector(0, 16);
+        return this.mouseState.permanent ? new Vector(x, this.size.y * 2) : new Vector(x, this.size.y);
     }
 
     private get textOffset(): number {
@@ -46,7 +54,7 @@ export default class TextButton {
         return this.mouseState.permanent ? 1 : 0;
     }
 
-    private get isTriggered(): boolean {
+    private get isClicked(): boolean {
         if (!this.isHovered) {
             return false;
         }
@@ -59,6 +67,6 @@ export default class TextButton {
     }
 
     private get size(): Vector {
-        return new Vector(this.image.width, this.image.height / 3);
+        return new Vector(this.image.width / 2, this.image.height / 3);
     }
 }
