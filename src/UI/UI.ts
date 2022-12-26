@@ -1,5 +1,6 @@
 import Area from '../Math/Area';
 import Font from '../Font/Font';
+import IconButton from './IconButton';
 import Label from './Label';
 import Mouse from '../Input/Mouse';
 import NineSlice from './NineSlice';
@@ -99,5 +100,9 @@ export default class UI {
 
     createTextButton(label: string, position: Vector, callback: () => void): TextButton {
         return new TextButton(this.font, this.buttonImage, this.mouse, this.mouseState, label, position, callback);
+    }
+
+    createIconButton(image: HTMLImageElement, position: Vector, callback: () => void): IconButton {
+        return new IconButton(image, this.mouse, this.mouseState, position, callback);
     }
 }
