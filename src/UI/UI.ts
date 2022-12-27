@@ -8,6 +8,7 @@ import NineSliceMargin from './NineSliceMargin';
 import PressedState from '../Input/PressedState';
 import TextAlign from '../Font/TextAlign';
 import TextButton from './TextButton';
+import Toggle from './Toggle';
 import Vector from '../Math/Vector';
 
 export default class UI {
@@ -104,5 +105,9 @@ export default class UI {
 
     createIconButton(image: HTMLImageElement, position: Vector, callback: () => void): IconButton {
         return new IconButton(image, this.mouse, this.mouseState, position, callback);
+    }
+
+    createToggle(imageEnabled: HTMLImageElement, imageDisabled: HTMLImageElement, position: Vector, callback: () => void): Toggle {
+        return new Toggle(imageEnabled, imageDisabled, this.mouse, this.mouseState, position, callback);
     }
 }
