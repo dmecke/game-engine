@@ -2,6 +2,7 @@ import FontFace from './FontFace';
 import Glyph from './Glyph';
 import ImageLoader from '../AssetLoader/ImageLoader';
 import TextAlign from './TextAlign';
+import Typist from './Typist';
 import Vector from '../Math/Vector';
 
 export default class Font {
@@ -9,6 +10,7 @@ export default class Font {
     private _align = TextAlign.left;
     private _width = new Map<string, number>();
     private _wrap: number|null = null;
+    private _typist: Typist|null = null;
     private _text = '';
 
     private glyphs: Glyph[];
@@ -27,6 +29,11 @@ export default class Font {
 
     wrap(width: number): this {
         this._wrap = width;
+        return this;
+    }
+
+    typist(typist: Typist): this {
+        this._typist = typist;
         return this;
     }
 
@@ -64,7 +71,7 @@ export default class Font {
         let position = new Vector(this.xStart, this.position.y);
 
         let lineWidth = 0;
-        for (let i = 0; i < this._text.length; i++) {
+        for (let i = 0; i < (this._typist ? this._typist.position : this._text.length); i++) {
             const glyph = this.getGlyph(this._text[i]);
             const isNewWordStart = i > 0 && this.getGlyph(this._text[i]).char !== ' ' && this.getGlyph(this._text[i - 1]).char === ' ';
             let upcomingWordWidth = 0;
