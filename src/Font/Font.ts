@@ -155,6 +155,10 @@ export default class Font {
         return this._width?.get(this._text) ?? 0;
     }
 
+    getWidth(): number {
+        return this.width;
+    }
+
     getHeight(): number {
         return this.fontFace.height;
     }
