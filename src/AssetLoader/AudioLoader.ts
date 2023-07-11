@@ -1,24 +1,29 @@
 import {Howl} from 'howler';
+import Progress from './Progress';
 
 export default class AudioLoader {
     static readonly instance = new AudioLoader();
     private files: Map<string, Howl> = new Map();
+    progress = new Progress(0);
+    private onProgressCallbacks: ((progress: Progress) => void)[] = [];
 
     private constructor() {}
 
     static loadFiles(files: string[]): Promise<void> {
+        AudioLoader.instance.progress = new Progress(files.length);
+
         return new Promise(resolve => {
             if (files.length === 0) {
                 resolve();
             }
 
-            let loaded = 0;
             for (const file of files) {
                 const howl = new Howl({
                     src: `audio/${file}`,
                     onload: () => {
-                        loaded++;
-                        if (loaded === files.length) {
+                        AudioLoader.instance.progress.increment();
+                        AudioLoader.instance.onProgressCallbacks.forEach(callback => callback(AudioLoader.instance.progress));
+                        if (AudioLoader.instance.progress.isDone()) {
                             resolve();
                         }
                     }
@@ -26,6 +31,10 @@ export default class AudioLoader {
                 AudioLoader.instance.files.set(file, howl);
             }
         });
+    }
+
+    onProgress(callback: (progress: Progress) => void): void {
+        this.onProgressCallbacks.push(callback);
     }
 
     getFile(file: string): Howl {

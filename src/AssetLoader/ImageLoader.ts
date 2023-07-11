@@ -1,31 +1,40 @@
 import CanvasSprite from '../Canvas/CanvasSprite';
+import Progress from './Progress';
 import Vector from '../Math/Vector';
 
 export default class ImageLoader {
     static readonly instance = new ImageLoader();
     private images: Map<string, HTMLImageElement> = new Map();
+    progress = new Progress(0);
+    private onProgressCallbacks: ((progress: Progress) => void)[] = [];
 
     private constructor() {}
 
     static loadImages(images: string[]): Promise<void> {
+        ImageLoader.instance.progress = new Progress(images.length);
+
         return new Promise(resolve => {
             if (images.length === 0) {
                 resolve();
             }
 
-            let loaded = 0;
             for (const image of images) {
                 const img = new Image();
                 img.src = `images/${image}`;
                 img.onload = () => {
-                    loaded++;
-                    if (loaded === images.length) {
+                    ImageLoader.instance.progress.increment();
+                    ImageLoader.instance.onProgressCallbacks.forEach(callback => callback(ImageLoader.instance.progress));
+                    if (ImageLoader.instance.progress.isDone()) {
                         resolve();
                     }
                 }
                 ImageLoader.instance.images.set(image, img);
             }
         });
+    }
+
+    onProgress(callback: (progress: Progress) => void): void {
+        this.onProgressCallbacks.push(callback);
     }
 
     fromName(image: string, offset: Vector, size: Vector, position: Vector): CanvasSprite {
