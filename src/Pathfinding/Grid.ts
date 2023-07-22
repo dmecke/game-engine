@@ -1,4 +1,4 @@
-import Layer from '../LDtk/Layer';
+import GridType from '../Type/Grid';
 import PF from 'pathfinding';
 import Vector from '../Math/Vector';
 
@@ -7,10 +7,14 @@ export default class Grid {
 
     constructor(
         size: Vector,
-        collisionLayer: Layer,
+        walkableGrid: GridType<boolean>,
     ) {
         this.grid = new PF.Grid(size.x, size.y);
-        collisionLayer.positions.forEach(position => this.grid.setWalkableAt(position.x, position.y, collisionLayer.getIntAt(position) === 0));
+        for (let y = 0; y < size.y; y++) {
+            for (let x = 0; x < size.x; x++) {
+                this.grid.setWalkableAt(x, y, walkableGrid.get(x, y) ?? false);
+            }
+        }
     }
 
     isWalkable(position: Vector): boolean {
