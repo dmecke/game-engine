@@ -87,4 +87,12 @@ describe('Rng', () => {
         const result = Rng.instance.choose(['apple', 'banana', 'orange']);
         expect(['apple', 'banana', 'orange']).toContain(result);
     });
+
+    it('returns multiple random elements from an array', () => {
+        const result = Rng.instance.chooseMultiple(['apple', 'banana', 'orange'], 2);
+        expect(result).toHaveLength(2);
+        expect(['apple', 'banana', 'orange']).toContain(result[0]);
+        expect(['apple', 'banana', 'orange']).toContain(result[1]);
+        expect(result[0]).not.toEqual(result[1]);
+    });
 });

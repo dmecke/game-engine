@@ -33,4 +33,18 @@ export default class Rng {
     choose<T>(array: T[]): T {
         return array[this.randomInt(array.length)];
     }
+
+    chooseMultiple<T>(array: T[], amount: number): T[] {
+        const result: T[] = new Array(amount);
+        let length = array.length;
+        const taken = new Array(length);
+
+        while (amount--) {
+            const x = this.randomInt(length);
+            result[amount] = array[x in taken ? taken[x] : x];
+            taken[x] = --length in taken ? taken[length] : length;
+        }
+
+        return result;
+    }
 }
