@@ -216,6 +216,14 @@ describe('Vector', () => {
         expect(ceiledVector.y).toBe(3);
     });
 
+    it('should clamp values correctly', () => {
+        const vector = new Vector(1, 5);
+        const clampedVector = vector.clamp(new Vector(2, 3), new Vector(4, 4));
+
+        expect(clampedVector.x).toBe(2);
+        expect(clampedVector.y).toBe(4);
+    });
+
     it('should create a square around Vector instance with given size', () => {
         const vector = new Vector(1, 2);
         const square = vector.squareAround(10);

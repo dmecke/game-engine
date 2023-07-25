@@ -1,5 +1,6 @@
 import Area from './Area';
 import Circle from './Circle';
+import clamp from './clamp';
 import lerp from './lerp';
 import radToDeg from './radToDeg';
 
@@ -126,6 +127,13 @@ export default class Vector {
 
     ceil(): Vector {
         return new Vector(Math.ceil(this._x), Math.ceil(this._y));
+    }
+
+    clamp(min: Vector, max: Vector): Vector {
+        return new Vector(
+            clamp(this._x, min._x, max._x),
+            clamp(this._y, min._y, max._y),
+        );
     }
 
     squareAround(size: number): Area {
