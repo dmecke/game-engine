@@ -1,7 +1,7 @@
+import Area from '../Math/Area';
 import ScreenShake from './ScreenShake';
 import Vector from '../Math/Vector';
 import clamp from '../Math/clamp';
-import Area from "../Math/Area";
 
 export default class Camera {
     target: { position: Vector }|null = null;
