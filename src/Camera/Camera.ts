@@ -1,6 +1,7 @@
 import ScreenShake from './ScreenShake';
 import Vector from '../Math/Vector';
 import clamp from '../Math/clamp';
+import Area from "../Math/Area";
 
 export default class Camera {
     target: { position: Vector }|null = null;
@@ -22,5 +23,9 @@ export default class Camera {
             clamp(this.target.position.x - viewport.center.x, 0, Math.max(0, this.sizeConstraint.x - viewport.size.x)),
             clamp(this.target.position.y - viewport.center.y, 0, Math.max(0, this.sizeConstraint.y - viewport.size.y)),
         ).add(this.screenShake.offset);
+    }
+
+    get visibleArea(): Area {
+        return new Area(this.position, this.sizeConstraint);
     }
 }
