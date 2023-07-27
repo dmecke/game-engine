@@ -38,6 +38,27 @@ export default class QuadTree<T> {
         }
     }
 
+    queryPosition(position: Vector): ({ position: Vector, data: T })[] {
+        if (!this.area.contains(position)) {
+            return [];
+        }
+
+        let elements: ({ position: Vector, data: T })[] = [];
+        this
+            .elements
+            .filter(element => position.equals(element.position))
+            .forEach(element => elements.push(element))
+        ;
+        if (this.divided) {
+            elements = elements.concat(this.northWest?.queryPosition(position) ?? []);
+            elements = elements.concat(this.northEast?.queryPosition(position) ?? []);
+            elements = elements.concat(this.southEast?.queryPosition(position) ?? []);
+            elements = elements.concat(this.southWest?.queryPosition(position) ?? []);
+        }
+
+        return elements;
+    }
+
     queryArea(area: Area): ({ position: Vector, data: T })[] {
         if (!this.area.overlaps(area)) {
             return [];
