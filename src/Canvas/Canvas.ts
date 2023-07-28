@@ -44,7 +44,7 @@ export default class Canvas {
 
     private get size(): Vector {
         for (let scale = this.maxScale; scale >= 1; scale--) {
-            if (window.innerWidth >= this.nativeResolution.multiply(scale).x) {
+            if (window.innerWidth >= this.nativeResolution.multiply(scale).x && window.innerHeight >= this.nativeResolution.multiply(scale).y) {
                 return this.nativeResolution.multiply(scale);
             }
         }
