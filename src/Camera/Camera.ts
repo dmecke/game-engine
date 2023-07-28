@@ -10,7 +10,8 @@ export default class Camera {
 
     constructor(
         private readonly sizeConstraint: Vector, // size of the map
-        private readonly size: Vector, // size of the camera viewport
+        private readonly viewport: Area,
+        private readonly unit = 1, // the camera will snap to a multiple of this value
     ) {
     }
     
@@ -18,15 +19,15 @@ export default class Camera {
         if (this.target === null) {
             return;
         }
-        
-        const viewport = window.canvas.viewport;
+
+        const center = this.viewport.center.divide(this.unit).floor().multiply(this.unit);
         this.position = new Vector(
-            clamp(this.target.position.x - viewport.center.x, 0, Math.max(0, this.sizeConstraint.x - viewport.size.x)),
-            clamp(this.target.position.y - viewport.center.y, 0, Math.max(0, this.sizeConstraint.y - viewport.size.y)),
+            clamp(this.target.position.x - center.x, 0, Math.max(0, this.sizeConstraint.x - this.viewport.size.x)),
+            clamp(this.target.position.y - center.y, 0, Math.max(0, this.sizeConstraint.y - this.viewport.size.y)),
         ).add(this.screenShake.offset);
     }
 
     get visibleArea(): Area {
-        return new Area(this.position, this.size);
+        return new Area(this.position, this.viewport.size);
     }
 }
