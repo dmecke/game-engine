@@ -9,7 +9,8 @@ export default class Camera {
     screenShake = new ScreenShake(Vector.null(), 0);
 
     constructor(
-        private readonly sizeConstraint: Vector,
+        private readonly sizeConstraint: Vector, // size of the map
+        private readonly size: Vector, // size of the camera viewport
     ) {
     }
     
@@ -26,6 +27,6 @@ export default class Camera {
     }
 
     get visibleArea(): Area {
-        return new Area(this.position, this.sizeConstraint);
+        return new Area(this.position, this.size);
     }
 }
