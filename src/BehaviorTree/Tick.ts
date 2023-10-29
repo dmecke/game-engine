@@ -30,7 +30,7 @@ export default class Tick<T> {
     afterTick(node: Node<T>, status: Status) {
         if (this.debug) {
             if (node.isLeaf) {
-                console.debug(`%c${this.getName(status)} ${node.description}`, `color: ${this.getColor(status)}`);
+                console.log(`%c${this.getName(status)} ${node.description}`, `color: ${this.getColor(status)}`);
             } else {
                 console.groupEnd();
             }
