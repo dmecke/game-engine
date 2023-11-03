@@ -27,4 +27,17 @@ export default class Triangle {
 
         return Math.abs(ab.cross(ac) / 2);
     }
+
+    contains(point: Vector): boolean {
+        for (const line of this.lines) {
+            const linePoint = line.point2.subtract(line.point1);
+            const pointPoint = point.subtract(line.point1);
+
+            if (linePoint.cross(pointPoint) < 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
