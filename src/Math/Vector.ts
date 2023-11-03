@@ -105,6 +105,10 @@ export default class Vector {
         return this.divide(this.length);
     }
 
+    cross(other: Vector): number {
+        return this._x * other._y - this._y * other._x;
+    }
+
     perpendicular(): Vector {
         return new Vector(this._y, this._x);
     }

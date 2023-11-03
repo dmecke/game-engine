@@ -170,6 +170,13 @@ describe('Vector', () => {
         });
     });
 
+    it('calculates the cross product', () => {
+        const vector1 = new Vector(1, 2);
+        const vector2 = new Vector(3, 4);
+
+        expect(vector1.cross(vector2)).toBe(-2);
+    });
+
     it('should return a new vector that is perpendicular to the original vector', () => {
         const vector = new Vector(1, 2);
         const perpendicularVector = vector.perpendicular();
