@@ -1,4 +1,5 @@
 import Area from '../../src/Math/Area';
+import Line from '../../src/Math/Line';
 import Vector from '../../src/Math/Vector';
 
 describe('Area', () => {
@@ -111,6 +112,30 @@ describe('Area', () => {
         expect(area.containsOneOf(positionsWithNoneInArea)).toBe(false);
     });
 
+    it('returns the correct value for top left', () => {
+        const area = new Area(new Vector(10, 15), new Vector(20, 25));
+
+        expect(area.topLeft).toEqual(new Vector(10, 15));
+    });
+
+    it('returns the correct value for top right', () => {
+        const area = new Area(new Vector(10, 15), new Vector(20, 25));
+
+        expect(area.topRight).toEqual(new Vector(30, 15));
+    });
+
+    it('returns the correct value for bottom left', () => {
+        const area = new Area(new Vector(10, 15), new Vector(20, 25));
+
+        expect(area.bottomLeft).toEqual(new Vector(10, 40));
+    });
+
+    it('returns the correct value for bottom right', () => {
+        const area = new Area(new Vector(10, 15), new Vector(20, 25));
+
+        expect(area.bottomRight).toEqual(new Vector(30, 40));
+    });
+
     it('returns the correct value for left', () => {
         const area = new Area(new Vector(10, 10), new Vector(20, 20));
 
@@ -139,6 +164,28 @@ describe('Area', () => {
         const area = new Area(new Vector(10, 10), new Vector(20, 20));
 
         expect(area.center).toEqual(new Vector(20, 20));
+    });
+
+    it('returns the correct vertices', () => {
+        const area = new Area(new Vector(10, 10), new Vector(20, 20));
+
+        expect(area.vertices).toEqual([
+            new Vector(10, 10),
+            new Vector(30, 10),
+            new Vector(30, 30),
+            new Vector(10, 30),
+        ]);
+    });
+
+    it('returns the correct lines', () => {
+        const area = new Area(new Vector(10, 10), new Vector(20, 20));
+
+        expect(area.lines).toEqual([
+            new Line(new Vector(10, 10), new Vector(30, 10)),
+            new Line(new Vector(30, 10), new Vector(30, 30)),
+            new Line(new Vector(30, 30), new Vector(10, 30)),
+            new Line(new Vector(10, 30), new Vector(10, 10)),
+        ]);
     });
 
     it('should return the intersection of two areas', () => {

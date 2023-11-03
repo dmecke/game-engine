@@ -1,3 +1,4 @@
+import Line from './Line';
 import Rng from './Rng';
 import Vector from './Vector';
 
@@ -82,6 +83,22 @@ export default class Area {
         return false;
     }
 
+    get topLeft(): Vector {
+        return this.position;
+    }
+
+    get topRight(): Vector {
+        return new Vector(this.position.x + this.size.x, this.position.y);
+    }
+
+    get bottomLeft(): Vector {
+        return new Vector(this.position.x, this.position.y + this.size.y);
+    }
+
+    get bottomRight(): Vector {
+        return this.position.add(this.size);
+    }
+
     get left(): number {
         return this.position.x;
     }
@@ -100,6 +117,24 @@ export default class Area {
 
     get center(): Vector {
         return this.position.add(this.size.divide(2));
+    }
+
+    get vertices(): [Vector, Vector, Vector, Vector] {
+        return [
+            this.topLeft,
+            this.topRight,
+            this.bottomRight,
+            this.bottomLeft,
+        ];
+    }
+
+    get lines(): [Line, Line, Line, Line] {
+        return [
+            new Line(this.topLeft, this.topRight),
+            new Line(this.topRight, this.bottomRight),
+            new Line(this.bottomRight, this.bottomLeft),
+            new Line(this.bottomLeft, this.topLeft),
+        ];
     }
 
     intersection(other: Area): Area {
