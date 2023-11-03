@@ -151,8 +151,12 @@ export default class Vector {
         return new Circle(this, radius);
     }
 
+    angleTo(other: Vector): number {
+        return Math.atan2(this._y - other._y, this._x - other._x);
+    }
+
     directionTo(other: Vector): number {
-        return -radToDeg(Math.atan2(this._y - other._y, this._x - other._x)) + 180;
+        return -radToDeg(this.angleTo(other)) + 180;
     }
 
     lerpTo(other: Vector, amount: number): Vector {

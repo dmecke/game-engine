@@ -250,6 +250,14 @@ describe('Vector', () => {
         expect(circle.radius).toBe(10);
     });
 
+    it('should return the correct angle to another vector', () => {
+        const vector1 = new Vector(10, 10);
+        const vector2 = new Vector(20, 20);
+        const angle = vector1.angleTo(vector2);
+
+        expect(angle).toBeCloseTo(-2.356);
+    });
+
     it('should return the correct direction to another vector', () => {
         const vector1 = new Vector(10, 10);
         const vector2 = new Vector(20, 20);
