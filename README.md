@@ -6,7 +6,7 @@ The code is mainly for myself to be used in my own personal games. I made it pub
 
 ### Install via yarn:
 ```shell
-yarn intall @dmecke/game-engine
+yarn install @dmecke/game-engine
 ```
 
 ### Install via npm:
