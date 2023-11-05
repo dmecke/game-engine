@@ -1,14 +1,14 @@
-import {Convert, Coordinate} from './quicktype';
+import {Convert, LDtk} from './quicktype';
 import Area from '../Math/Area';
 import Level from './Level';
 import Tileset from './Tileset';
 import Vector from '../Math/Vector';
 
 export default class World {
-    private readonly world: Coordinate;
+    private readonly world: LDtk;
 
     constructor(world: string) {
-        this.world = Convert.toCoordinate(world);
+        this.world = Convert.toLDtk(world);
     }
 
     getLevel(name: string): Level {

@@ -1,8 +1,8 @@
 // To parse this data:
 //
-//   import { Convert, Coordinate } from "./file";
+//   import { Convert, LDtk } from "./file";
 //
-//   const coordinate = Convert.toCoordinate(json);
+//   const lDtk = Convert.toLDtk(json);
 //
 // These functions will throw an error if the JSON doesn't
 // match the expected interface, even if the JSON is valid.
@@ -14,7 +14,7 @@
  * array of levels, - a group of definitions (that can probably be safely ignored for most
  * users).
  */
-export interface Coordinate {
+export interface LDtk {
     /**
      * This object is not actually used by LDtk. It ONLY exists to force explicit references to
      * all types, to make sure QuickType finds them and integrate all of them. Otherwise,
@@ -38,9 +38,25 @@ export interface Coordinate {
      */
     backupOnSave: boolean;
     /**
+     * Target relative path to store backup files
+     */
+    backupRelPath?: null | string;
+    /**
      * Project background color
      */
     bgColor: string;
+    /**
+     * An array of command lines that can be ran manually by the user
+     */
+    customCommands: LdtkCustomCommand[];
+    /**
+     * Default height for new entities
+     */
+    defaultEntityHeight: number;
+    /**
+     * Default width for new entities
+     */
+    defaultEntityWidth: number;
     /**
      * Default grid size for new layers
      */
@@ -74,6 +90,14 @@ export interface Coordinate {
      */
     defs: Definitions;
     /**
+     * If the project isn't in MultiWorlds mode, this is the IID of the internal "dummy" World.
+     */
+    dummyWorldIid: string;
+    /**
+     * If TRUE, the exported PNGs will include the level background (color or image).
+     */
+    exportLevelBg: boolean;
+    /**
      * **WARNING**: this deprecated value is no longer exported since version 0.9.3  Replaced
      * by: `imageExportMode`
      */
@@ -99,6 +123,10 @@ export interface Coordinate {
      * values: `Capitalize`, `Uppercase`, `Lowercase`, `Free`
      */
     identifierStyle: IdentifierStyle;
+    /**
+     * Unique project identifier
+     */
+    iid: string;
     /**
      * "Image export" option when saving project. Possible values: `None`, `OneImagePerLayer`,
      * `OneImagePerLevel`, `LayersAndLevels`
@@ -137,6 +165,11 @@ export interface Coordinate {
      */
     simplifiedExport: boolean;
     /**
+     * All instances of entities that have their `exportToToc` flag enabled are listed in this
+     * array.
+     */
+    toc: LdtkTableOfContentEntry[];
+    /**
      * This optional description is used by LDtk Samples to show up some informations and
      * instructions.
      */
@@ -162,19 +195,18 @@ export interface Coordinate {
      */
     worldLayout?: WorldLayout | null;
     /**
-     * This array is not used yet in current LDtk version (so, for now, it's always
-     * empty).<br/><br/>In a later update, it will be possible to have multiple Worlds in a
-     * single project, each containing multiple Levels.<br/><br/>What will change when "Multiple
-     * worlds" support will be added to LDtk:<br/><br/> - in current version, a LDtk project
-     * file can only contain a single world with multiple levels in it. In this case, levels and
-     * world layout related settings are stored in the root of the JSON.<br/> - after the
-     * "Multiple worlds" update, there will be a `worlds` array in root, each world containing
-     * levels and layout settings. Basically, it's pretty much only about moving the `levels`
-     * array to the `worlds` array, along with world layout related values (eg. `worldGridWidth`
-     * etc).<br/><br/>If you want to start supporting this future update easily, please refer to
-     * this documentation: https://github.com/deepnight/ldtk/issues/231
+     * This array will be empty, unless you enable the Multi-Worlds in the project advanced
+     * settings.<br/><br/> - in current version, a LDtk project file can only contain a single
+     * world with multiple levels in it. In this case, levels and world layout related settings
+     * are stored in the root of the JSON.<br/> - with "Multi-worlds" enabled, there will be a
+     * `worlds` array in root, each world containing levels and layout settings. Basically, it's
+     * pretty much only about moving the `levels` array to the `worlds` array, along with world
+     * layout related values (eg. `worldGridWidth` etc).<br/><br/>If you want to start
+     * supporting this future update easily, please refer to this documentation:
+     * https://github.com/deepnight/ldtk/issues/231
      */
     worlds: World[];
+    [property: string]: any;
 }
 
 /**
@@ -185,28 +217,32 @@ export interface Coordinate {
 export interface ForcedRefs {
     AutoLayerRuleGroup?:   AutoLayerRuleGroup;
     AutoRuleDef?:          AutoLayerRuleDefinition;
+    CustomCommand?:        LdtkCustomCommand;
     Definitions?:          Definitions;
     EntityDef?:            EntityDefinition;
     EntityInstance?:       EntityInstance;
-    EntityReferenceInfos?: FieldInstanceEntityReference;
+    EntityReferenceInfos?: ReferenceToAnEntityInstance;
     EnumDef?:              EnumDefinition;
     EnumDefValues?:        EnumValueDefinition;
     EnumTagValue?:         EnumTagValue;
     FieldDef?:             FieldDefinition;
     FieldInstance?:        FieldInstance;
-    GridPoint?:            FieldInstanceGridPoint;
+    GridPoint?:            GridPoint;
     IntGridValueDef?:      IntGridValueDefinition;
+    IntGridValueGroupDef?: IntGridValueGroupDefinition;
     IntGridValueInstance?: IntGridValueInstance;
     LayerDef?:             LayerDefinition;
     LayerInstance?:        LayerInstance;
     Level?:                Level;
     LevelBgPosInfos?:      LevelBackgroundPosition;
     NeighbourLevel?:       NeighbourLevel;
+    TableOfContentEntry?:  LdtkTableOfContentEntry;
     Tile?:                 TileInstance;
     TileCustomMetadata?:   TileCustomMetadata;
     TilesetDef?:           TilesetDefinition;
     TilesetRect?:          TilesetRectangle;
     World?:                World;
+    [property: string]: any;
 }
 
 export interface AutoLayerRuleGroup {
@@ -215,10 +251,39 @@ export interface AutoLayerRuleGroup {
      * *This field was removed in 1.0.0 and should no longer be used.*
      */
     collapsed?: boolean | null;
+    color?:     null | string;
+    icon?:      TilesetRectangle | null;
     isOptional: boolean;
     name:       string;
     rules:      AutoLayerRuleDefinition[];
     uid:        number;
+    usesWizard: boolean;
+}
+
+/**
+ * This object represents a custom sub rectangle in a Tileset image.
+ */
+export interface TilesetRectangle {
+    /**
+     * Height in pixels
+     */
+    h: number;
+    /**
+     * UID of the tileset
+     */
+    tilesetUid: number;
+    /**
+     * Width in pixels
+     */
+    w: number;
+    /**
+     * X pixels coordinate of the top-left corner in the Tileset image
+     */
+    x: number;
+    /**
+     * Y pixels coordinate of the top-left corner in the Tileset image
+     */
+    y: number;
 }
 
 /**
@@ -228,9 +293,10 @@ export interface AutoLayerRuleGroup {
  */
 export interface AutoLayerRuleDefinition {
     /**
-     * If FALSE, the rule effect isn't applied, and no images are generated.
+     * If FALSE, the rule effect isn't applied, and no tiles are generated.
      */
     active: boolean;
+    alpha:  number;
     /**
      * When TRUE, the rule will prevent other rules to be applied in the same cell if it matches
      * (TRUE by default).
@@ -288,6 +354,30 @@ export interface AutoLayerRuleDefinition {
      */
     tileMode: TileMode;
     /**
+     * Max random offset for X tile pos
+     */
+    tileRandomXMax: number;
+    /**
+     * Min random offset for X tile pos
+     */
+    tileRandomXMin: number;
+    /**
+     * Max random offset for Y tile pos
+     */
+    tileRandomYMax: number;
+    /**
+     * Min random offset for Y tile pos
+     */
+    tileRandomYMin: number;
+    /**
+     * Tile X offset
+     */
+    tileXOffset: number;
+    /**
+     * Tile Y offset
+     */
+    tileYOffset: number;
+    /**
      * Unique Int identifier
      */
     uid: number;
@@ -324,6 +414,24 @@ export enum Checker {
 export enum TileMode {
     Single = "Single",
     Stamp = "Stamp",
+}
+
+export interface LdtkCustomCommand {
+    command: string;
+    /**
+     * Possible values: `Manual`, `AfterLoad`, `BeforeSave`, `AfterSave`
+     */
+    when: When;
+}
+
+/**
+ * Possible values: `Manual`, `AfterLoad`, `BeforeSave`, `AfterSave`
+ */
+export enum When {
+    AfterLoad = "AfterLoad",
+    AfterSave = "AfterSave",
+    BeforeSave = "BeforeSave",
+    Manual = "Manual",
 }
 
 /**
@@ -370,6 +478,15 @@ export interface EntityDefinition {
      */
     color: string;
     /**
+     * User defined documentation for this element to provide help/tips to level designers.
+     */
+    doc?: null | string;
+    /**
+     * If enabled, all instances of this entity will be listed in the project "Table of content"
+     * object.
+     */
+    exportToToc: boolean;
+    /**
      * Array of field definitions
      */
     fieldDefs:   FieldDefinition[];
@@ -402,6 +519,22 @@ export interface EntityDefinition {
      * Max instances count
      */
     maxCount: number;
+    /**
+     * Max pixel height (only applies if the entity is resizable on Y)
+     */
+    maxHeight?: number | null;
+    /**
+     * Max pixel width (only applies if the entity is resizable on X)
+     */
+    maxWidth?: number | null;
+    /**
+     * Min pixel height (only applies if the entity is resizable on Y)
+     */
+    minHeight?: number | null;
+    /**
+     * Min pixel width (only applies if the entity is resizable on X)
+     */
+    minWidth?: number | null;
     /**
      * An array of 4 dimensions for the up/right/down/left borders (in this order) when using
      * 9-slice mode for `tileRenderMode`.<br/>  If the tileRenderMode is not NineSlice, then
@@ -437,8 +570,8 @@ export interface EntityDefinition {
      */
     tags: string[];
     /**
-     * **WARNING**: this deprecated value will be *removed* completely on version 1.2.0+
-     * Replaced by: `tileRect`
+     * **WARNING**: this deprecated value is no longer exported since version 1.2.0  Replaced
+     * by: `tileRect`
      */
     tileId?:     number | null;
     tileOpacity: number;
@@ -460,6 +593,10 @@ export interface EntityDefinition {
      * Unique Int identifier
      */
     uid: number;
+    /**
+     * This tile overrides the one defined in `tileRect` in the UI
+     */
+    uiTileRect?: TilesetRectangle | null;
     /**
      * Pixel width
      */
@@ -485,11 +622,12 @@ export interface FieldDefinition {
      */
     acceptFileTypes?: string[] | null;
     /**
-     * Possible values: `Any`, `OnlySame`, `OnlyTags`
+     * Possible values: `Any`, `OnlySame`, `OnlyTags`, `OnlySpecificEntity`
      */
-    allowedRefs:        AllowedRefs;
-    allowedRefTags:     string[];
-    allowOutOfLevelRef: boolean;
+    allowedRefs:           AllowedRefs;
+    allowedRefsEntityUid?: number | null;
+    allowedRefTags:        string[];
+    allowOutOfLevelRef:    boolean;
     /**
      * Array max length
      */
@@ -507,12 +645,18 @@ export interface FieldDefinition {
     /**
      * Default value if selected value is null or invalid.
      */
-    defaultOverride?:    any;
+    defaultOverride?: any;
+    /**
+     * User defined documentation for this field to provide help/tips to level designers about
+     * accepted values.
+     */
+    doc?:                null | string;
     editorAlwaysShow:    boolean;
     editorCutLongValues: boolean;
+    editorDisplayColor?: null | string;
     /**
-     * Possible values: `Hidden`, `ValueOnly`, `NameAndValue`, `EntityTile`, `Points`,
-     * `PointStar`, `PointPath`, `PointPathLoop`, `RadiusPx`, `RadiusGrid`,
+     * Possible values: `Hidden`, `ValueOnly`, `NameAndValue`, `EntityTile`, `LevelTile`,
+     * `Points`, `PointStar`, `PointPath`, `PointPathLoop`, `RadiusPx`, `RadiusGrid`,
      * `ArrayCountWithLabel`, `ArrayCountNoLabel`, `RefLinkBetweenPivots`,
      * `RefLinkBetweenCenters`
      */
@@ -520,7 +664,13 @@ export interface FieldDefinition {
     /**
      * Possible values: `Above`, `Center`, `Beneath`
      */
-    editorDisplayPos:  EditorDisplayPos;
+    editorDisplayPos:   EditorDisplayPos;
+    editorDisplayScale: number;
+    /**
+     * Possible values: `ZigZag`, `StraightArrow`, `CurvedArrow`, `ArrowsLine`, `DashedLine`
+     */
+    editorLinkStyle:   EditorLinkStyle;
+    editorShowInWorld: boolean;
     editorTextPrefix?: null | string;
     editorTextSuffix?: null | string;
     /**
@@ -572,17 +722,18 @@ export interface FieldDefinition {
 }
 
 /**
- * Possible values: `Any`, `OnlySame`, `OnlyTags`
+ * Possible values: `Any`, `OnlySame`, `OnlyTags`, `OnlySpecificEntity`
  */
 export enum AllowedRefs {
     Any = "Any",
     OnlySame = "OnlySame",
+    OnlySpecificEntity = "OnlySpecificEntity",
     OnlyTags = "OnlyTags",
 }
 
 /**
- * Possible values: `Hidden`, `ValueOnly`, `NameAndValue`, `EntityTile`, `Points`,
- * `PointStar`, `PointPath`, `PointPathLoop`, `RadiusPx`, `RadiusGrid`,
+ * Possible values: `Hidden`, `ValueOnly`, `NameAndValue`, `EntityTile`, `LevelTile`,
+ * `Points`, `PointStar`, `PointPath`, `PointPathLoop`, `RadiusPx`, `RadiusGrid`,
  * `ArrayCountWithLabel`, `ArrayCountNoLabel`, `RefLinkBetweenPivots`,
  * `RefLinkBetweenCenters`
  */
@@ -591,6 +742,7 @@ export enum EditorDisplayMode {
     ArrayCountWithLabel = "ArrayCountWithLabel",
     EntityTile = "EntityTile",
     Hidden = "Hidden",
+    LevelTile = "LevelTile",
     NameAndValue = "NameAndValue",
     PointPath = "PointPath",
     PointPathLoop = "PointPathLoop",
@@ -610,6 +762,17 @@ export enum EditorDisplayPos {
     Above = "Above",
     Beneath = "Beneath",
     Center = "Center",
+}
+
+/**
+ * Possible values: `ZigZag`, `StraightArrow`, `CurvedArrow`, `ArrowsLine`, `DashedLine`
+ */
+export enum EditorLinkStyle {
+    ArrowsLine = "ArrowsLine",
+    CurvedArrow = "CurvedArrow",
+    DashedLine = "DashedLine",
+    StraightArrow = "StraightArrow",
+    ZigZag = "ZigZag",
 }
 
 export enum TextLanguageMode {
@@ -652,32 +815,6 @@ export enum RenderMode {
     Ellipse = "Ellipse",
     Rectangle = "Rectangle",
     Tile = "Tile",
-}
-
-/**
- * This object represents a custom sub rectangle in a Tileset image.
- */
-export interface TilesetRectangle {
-    /**
-     * Height in pixels
-     */
-    h: number;
-    /**
-     * UID of the tileset
-     */
-    tilesetUid: number;
-    /**
-     * Width in pixels
-     */
-    w: number;
-    /**
-     * X pixels coordinate of the top-left corner in the Tileset image
-     */
-    x: number;
-    /**
-     * Y pixels coordinate of the top-left corner in the Tileset image
-     */
-    y: number;
 }
 
 /**
@@ -725,8 +862,8 @@ export interface EnumDefinition {
 
 export interface EnumValueDefinition {
     /**
-     * An array of 4 Int values that refers to the tile in the tileset image: `[ x, y, width,
-     * height ]`
+     * **WARNING**: this deprecated value is no longer exported since version 1.4.0  Replaced
+     * by: `tileRect`
      */
     __tileSrcRect?: number[] | null;
     /**
@@ -738,9 +875,14 @@ export interface EnumValueDefinition {
      */
     id: string;
     /**
-     * The optional ID of the tile
+     * **WARNING**: this deprecated value is no longer exported since version 1.4.0  Replaced
+     * by: `tileRect`
      */
     tileId?: number | null;
+    /**
+     * Optional tileset rectangle to represents this value
+     */
+    tileRect?: TilesetRectangle | null;
 }
 
 export interface LayerDefinition {
@@ -754,14 +896,22 @@ export interface LayerDefinition {
     autoRuleGroups:         AutoLayerRuleGroup[];
     autoSourceLayerDefUid?: number | null;
     /**
-     * **WARNING**: this deprecated value will be *removed* completely on version 1.2.0+
-     * Replaced by: `tilesetDefUid`
+     * **WARNING**: this deprecated value is no longer exported since version 1.2.0  Replaced
+     * by: `tilesetDefUid`
      */
     autoTilesetDefUid?: number | null;
+    /**
+     * Allow editor selections when the layer is not currently active.
+     */
+    canSelectWhenInactive: boolean;
     /**
      * Opacity of the layer (0 to 1.0)
      */
     displayOpacity: number;
+    /**
+     * User defined documentation for this element to provide help/tips to level designers.
+     */
+    doc?: null | string;
     /**
      * An array of tags to forbid some Entities in this layer
      */
@@ -798,6 +948,10 @@ export interface LayerDefinition {
      */
     intGridValues: IntGridValueDefinition[];
     /**
+     * Group informations for IntGrid values
+     */
+    intGridValuesGroups: IntGridValueGroupDefinition[];
+    /**
      * Parallax horizontal factor (from -1 to 1, defaults to 0) which affects the scrolling
      * speed of this layer, creating a fake 3D (parallax) effect.
      */
@@ -822,16 +976,21 @@ export interface LayerDefinition {
      */
     pxOffsetY: number;
     /**
+     * If TRUE, the content of this layer will be used when rendering levels in a simplified way
+     * for the world view
+     */
+    renderInWorldView: boolean;
+    /**
      * An array of tags to filter Entities that can be added to this layer
      */
     requiredTags: string[];
     /**
-     * If the images are smaller or larger than the layer grid, the pivot value will be used to
+     * If the tiles are smaller or larger than the layer grid, the pivot value will be used to
      * position the tile relatively its grid cell.
      */
     tilePivotX: number;
     /**
-     * If the images are smaller or larger than the layer grid, the pivot value will be used to
+     * If the tiles are smaller or larger than the layer grid, the pivot value will be used to
      * position the tile relatively its grid cell.
      */
     tilePivotY: number;
@@ -848,6 +1007,10 @@ export interface LayerDefinition {
      */
     type: Type;
     /**
+     * User defined color for the UI
+     */
+    uiColor?: null | string;
+    /**
      * Unique Int identifier
      */
     uid: number;
@@ -859,13 +1022,36 @@ export interface LayerDefinition {
 export interface IntGridValueDefinition {
     color: string;
     /**
+     * Parent group identifier (0 if none)
+     */
+    groupUid: number;
+    /**
      * User defined unique identifier
      */
     identifier?: null | string;
+    tile?:       TilesetRectangle | null;
     /**
      * The IntGrid value itself
      */
     value: number;
+}
+
+/**
+ * IntGrid value group definition
+ */
+export interface IntGridValueGroupDefinition {
+    /**
+     * User defined color
+     */
+    color?: null | string;
+    /**
+     * User defined string identifier
+     */
+    identifier?: null | string;
+    /**
+     * Group unique ID
+     */
+    uid: number;
 }
 
 /**
@@ -934,11 +1120,11 @@ export interface TilesetDefinition {
      */
     relPath?: null | string;
     /**
-     * Array of group of images selections, only meant to be used in the editor
+     * Array of group of tiles selections, only meant to be used in the editor
      */
     savedSelections: { [key: string]: any }[];
     /**
-     * Space in pixels between all images
+     * Space in pixels between all tiles
      */
     spacing: number;
     /**
@@ -1003,6 +1189,14 @@ export interface EntityInstance {
      * tile, or some tile provided by a field value, like an Enum).
      */
     __tile?: TilesetRectangle | null;
+    /**
+     * X world coordinate in pixels
+     */
+    __worldX: number;
+    /**
+     * Y world coordinate in pixels
+     */
+    __worldY: number;
     /**
      * Reference of the **Entity definition** UID
      */
@@ -1071,9 +1265,9 @@ export interface FieldInstance {
 }
 
 /**
- * This object is used in Field Instances to describe an EntityRef value.
+ * This object describes the "location" of an Entity instance in the project worlds.
  */
-export interface FieldInstanceEntityReference {
+export interface ReferenceToAnEntityInstance {
     /**
      * IID of the refered EntityInstance
      */
@@ -1095,7 +1289,7 @@ export interface FieldInstanceEntityReference {
 /**
  * This object is just a grid-based coordinate used in Field values.
  */
-export interface FieldInstanceGridPoint {
+export interface GridPoint {
     /**
      * X grid-based coordinate
      */
@@ -1134,11 +1328,11 @@ export interface LayerInstance {
      */
     __gridSize: number;
     /**
-     * LayerDrawer definition identifier
+     * Layer definition identifier
      */
     __identifier: string;
     /**
-     * LayerDrawer opacity as Float [0-1]
+     * Layer opacity as Float [0-1]
      */
     __opacity: number;
     /**
@@ -1158,14 +1352,14 @@ export interface LayerInstance {
      */
     __tilesetRelPath?: null | string;
     /**
-     * LayerDrawer type (possible values: IntGrid, Entities, Tiles or AutoLayer)
+     * Layer type (possible values: IntGrid, Entities, Tiles or AutoLayer)
      */
     __type: string;
     /**
-     * An array containing all images generated by Auto-layer rules. The array is already sorted
+     * An array containing all tiles generated by Auto-layer rules. The array is already sorted
      * in display order (ie. 1st tile is beneath 2nd, which is beneath 3rd etc.).<br/><br/>
-     * Note: if multiple images are stacked in the same cell as the result of different rules,
-     * all images behind opaque ones will be discarded.
+     * Note: if multiple tiles are stacked in the same cell as the result of different rules,
+     * all tiles behind opaque ones will be discarded.
      */
     autoLayerTiles:  TileInstance[];
     entityInstances: EntityInstance[];
@@ -1187,7 +1381,7 @@ export interface LayerInstance {
      */
     intGridCsv: number[];
     /**
-     * Reference the LayerDrawer definition UID
+     * Reference the Layer definition UID
      */
     layerDefUid: number;
     /**
@@ -1205,12 +1399,14 @@ export interface LayerInstance {
     overrideTilesetUid?: number | null;
     /**
      * X offset in pixels to render this layer, usually 0 (IMPORTANT: this should be added to
-     * the `LayerDef` optional offset, see `__pxTotalOffsetX`)
+     * the `LayerDef` optional offset, so you should probably prefer using `__pxTotalOffsetX`
+     * which contains the total offset value)
      */
     pxOffsetX: number;
     /**
      * Y offset in pixels to render this layer, usually 0 (IMPORTANT: this should be added to
-     * the `LayerDef` optional offset, see `__pxTotalOffsetY`)
+     * the `LayerDef` optional offset, so you should probably prefer using `__pxTotalOffsetX`
+     * which contains the total offset value)
      */
     pxOffsetY: number;
     /**
@@ -1218,7 +1414,7 @@ export interface LayerInstance {
      */
     seed: number;
     /**
-     * LayerDrawer instance visibility
+     * Layer instance visibility
      */
     visible: boolean;
 }
@@ -1228,8 +1424,12 @@ export interface LayerInstance {
  */
 export interface TileInstance {
     /**
-     * Internal data used by the editor.<br/>  For auto-layer images: `[ruleId, coordId]`.<br/>
-     * For tile-layer images: `[coordId]`.
+     * Alpha/opacity of the tile (0-1, defaults to 1)
+     */
+    a: number;
+    /**
+     * Internal data used by the editor.<br/>  For auto-layer tiles: `[ruleId, coordId]`.<br/>
+     * For tile-layer tiles: `[coordId]`.
      */
     d: number[];
     /**
@@ -1274,9 +1474,10 @@ export interface Level {
      */
     __bgPos?: LevelBackgroundPosition | null;
     /**
-     * An array listing all other levels touching this one on the world map.<br/>  Only relevant
-     * for world layouts where level spatial positioning is manual (ie. GridVania, Free). For
-     * Horizontal and Vertical layouts, this array is always empty.
+     * An array listing all other levels touching this one on the world map. Since 1.4.0, this
+     * includes levels that overlap in the same world layer, or in nearby world layers.<br/>
+     * Only relevant for world layouts where level spatial positioning is manual (ie. GridVania,
+     * Free). For Horizontal and Vertical layouts, this array is always empty.
      */
     __neighbours: NeighbourLevel[];
     /**
@@ -1300,7 +1501,7 @@ export interface Level {
     /**
      * An enum defining the way the background image (if any) is positioned on the level. See
      * `__bgPos` for resulting position info. Possible values: &lt;`null`&gt;, `Unscaled`,
-     * `Contain`, `Cover`, `CoverDirty`
+     * `Contain`, `Cover`, `CoverDirty`, `Repeat`
      */
     bgPos?: BgPos | null;
     /**
@@ -1325,7 +1526,7 @@ export interface Level {
      */
     iid: string;
     /**
-     * An array containing all LayerDrawer instances. **IMPORTANT**: if the project option "*Save
+     * An array containing all Layer instances. **IMPORTANT**: if the project option "*Save
      * levels separately*" is enabled, this field will be `null`.<br/>  This array is **sorted
      * in display order**: the 1st layer is the top-most and the last is behind.
      */
@@ -1396,7 +1597,9 @@ export interface LevelBackgroundPosition {
 export interface NeighbourLevel {
     /**
      * A single lowercase character tipping on the level location (`n`orth, `s`outh, `w`est,
-     * `e`ast).
+     * `e`ast).<br/>  Since 1.4.0, this character value can also be `<` (neighbour depth is
+     * lower), `>` (neighbour depth is greater) or `o` (levels overlap and share the same world
+     * depth).
      */
     dir: string;
     /**
@@ -1404,23 +1607,29 @@ export interface NeighbourLevel {
      */
     levelIid: string;
     /**
-     * **WARNING**: this deprecated value will be *removed* completely on version 1.2.0+
-     * Replaced by: `levelIid`
+     * **WARNING**: this deprecated value is no longer exported since version 1.2.0  Replaced
+     * by: `levelIid`
      */
-    levelUid?: number;
+    levelUid?: number | null;
 }
 
 export enum BgPos {
     Contain = "Contain",
     Cover = "Cover",
     CoverDirty = "CoverDirty",
+    Repeat = "Repeat",
     Unscaled = "Unscaled",
 }
 
+export interface LdtkTableOfContentEntry {
+    identifier: string;
+    instances:  ReferenceToAnEntityInstance[];
+}
+
 /**
- * **IMPORTANT**: this type is not used *yet* in current LDtk version. It's only presented
- * here as a preview of a planned feature.  A World contains multiple levels, and it has its
- * own layout settings.
+ * **IMPORTANT**: this type is available as a preview. You can rely on it to update your
+ * importers, for when it will be officially available.  A World contains multiple levels,
+ * and it has its own layout settings.
  */
 export interface World {
     /**
@@ -1501,20 +1710,34 @@ export enum ImageExportMode {
 // Converts JSON strings to/from your types
 // and asserts the results of JSON.parse at runtime
 export class Convert {
-    public static toCoordinate(json: string): Coordinate {
-        return cast(JSON.parse(json), r("Coordinate"));
+    public static toLDtk(json: string): LDtk {
+        return cast(JSON.parse(json), r("LDtk"));
     }
 
-    public static coordinateToJson(value: Coordinate): string {
-        return JSON.stringify(uncast(value, r("Coordinate")), null, 2);
+    public static lDtkToJson(value: LDtk): string {
+        return JSON.stringify(uncast(value, r("LDtk")), null, 2);
     }
 }
 
-function invalidValue(typ: any, val: any, key: any = ''): never {
-    if (key) {
-        throw Error(`Invalid value for key "${key}". Expected type ${JSON.stringify(typ)} but got ${JSON.stringify(val)}`);
+function invalidValue(typ: any, val: any, key: any, parent: any = ''): never {
+    const prettyTyp = prettyTypeName(typ);
+    const parentText = parent ? ` on ${parent}` : '';
+    const keyText = key ? ` for key "${key}"` : '';
+    throw Error(`Invalid value${keyText}${parentText}. Expected ${prettyTyp} but got ${JSON.stringify(val)}`);
+}
+
+function prettyTypeName(typ: any): string {
+    if (Array.isArray(typ)) {
+        if (typ.length === 2 && typ[0] === undefined) {
+            return `an optional ${prettyTypeName(typ[1])}`;
+        } else {
+            return `one of [${typ.map(a => { return prettyTypeName(a); }).join(", ")}]`;
+        }
+    } else if (typeof typ === "object" && typ.literal !== undefined) {
+        return typ.literal;
+    } else {
+        return typeof typ;
     }
-    throw Error(`Invalid value ${JSON.stringify(val)} for type ${JSON.stringify(typ)}`, );
 }
 
 function jsonToJSProps(typ: any): any {
@@ -1535,10 +1758,10 @@ function jsToJSONProps(typ: any): any {
     return typ.jsToJSON;
 }
 
-function transform(val: any, typ: any, getProps: any, key: any = ''): any {
+function transform(val: any, typ: any, getProps: any, key: any = '', parent: any = ''): any {
     function transformPrimitive(typ: string, val: any): any {
         if (typeof typ === typeof val) return val;
-        return invalidValue(typ, val, key);
+        return invalidValue(typ, val, key, parent);
     }
 
     function transformUnion(typs: any[], val: any): any {
@@ -1550,17 +1773,17 @@ function transform(val: any, typ: any, getProps: any, key: any = ''): any {
                 return transform(val, typ, getProps);
             } catch (_) {}
         }
-        return invalidValue(typs, val);
+        return invalidValue(typs, val, key, parent);
     }
 
     function transformEnum(cases: string[], val: any): any {
         if (cases.indexOf(val) !== -1) return val;
-        return invalidValue(cases, val);
+        return invalidValue(cases.map(a => { return l(a); }), val, key, parent);
     }
 
     function transformArray(typ: any, val: any): any {
         // val must be an array with no invalid elements
-        if (!Array.isArray(val)) return invalidValue("array", val);
+        if (!Array.isArray(val)) return invalidValue(l("array"), val, key, parent);
         return val.map(el => transform(el, typ, getProps));
     }
 
@@ -1570,24 +1793,24 @@ function transform(val: any, typ: any, getProps: any, key: any = ''): any {
         }
         const d = new Date(val);
         if (isNaN(d.valueOf())) {
-            return invalidValue("Date", val);
+            return invalidValue(l("Date"), val, key, parent);
         }
         return d;
     }
 
     function transformObject(props: { [k: string]: any }, additional: any, val: any): any {
         if (val === null || typeof val !== "object" || Array.isArray(val)) {
-            return invalidValue("object", val);
+            return invalidValue(l(ref || "object"), val, key, parent);
         }
         const result: any = {};
         Object.getOwnPropertyNames(props).forEach(key => {
             const prop = props[key];
             const v = Object.prototype.hasOwnProperty.call(val, key) ? val[key] : undefined;
-            result[prop.key] = transform(v, prop.typ, getProps, prop.key);
+            result[prop.key] = transform(v, prop.typ, getProps, key, ref);
         });
         Object.getOwnPropertyNames(val).forEach(key => {
             if (!Object.prototype.hasOwnProperty.call(props, key)) {
-                result[key] = transform(val[key], additional, getProps, key);
+                result[key] = transform(val[key], additional, getProps, key, ref);
             }
         });
         return result;
@@ -1596,10 +1819,12 @@ function transform(val: any, typ: any, getProps: any, key: any = ''): any {
     if (typ === "any") return val;
     if (typ === null) {
         if (val === null) return val;
-        return invalidValue(typ, val);
+        return invalidValue(typ, val, key, parent);
     }
-    if (typ === false) return invalidValue(typ, val);
+    if (typ === false) return invalidValue(typ, val, key, parent);
+    let ref: any = undefined;
     while (typeof typ === "object" && typ.ref !== undefined) {
+        ref = typ.ref;
         typ = typeMap[typ.ref];
     }
     if (Array.isArray(typ)) return transformEnum(typ, val);
@@ -1607,7 +1832,7 @@ function transform(val: any, typ: any, getProps: any, key: any = ''): any {
         return typ.hasOwnProperty("unionMembers") ? transformUnion(typ.unionMembers, val)
             : typ.hasOwnProperty("arrayItems")    ? transformArray(typ.arrayItems, val)
                 : typ.hasOwnProperty("props")         ? transformObject(getProps(typ), typ.additional, val)
-                    : invalidValue(typ, val);
+                    : invalidValue(typ, val, key, parent);
     }
     // Numbers can be parsed by Date but shouldn't be.
     if (typ === Date && typeof val !== "number") return transformDate(val);
@@ -1620,6 +1845,10 @@ function cast<T>(val: any, typ: any): T {
 
 function uncast<T>(val: T, typ: any): any {
     return transform(val, typ, jsToJSONProps);
+}
+
+function l(typ: any) {
+    return { literal: typ };
 }
 
 function a(typ: any) {
@@ -1635,7 +1864,6 @@ function o(props: any[], additional: any) {
 }
 
 function m(additional: any) {
-    // @ts-ignore
     return { props: [], additional };
 }
 
@@ -1644,12 +1872,16 @@ function r(name: string) {
 }
 
 const typeMap: any = {
-    "Coordinate": o([
+    "LDtk": o([
         { json: "__FORCED_REFS", js: "__FORCED_REFS", typ: u(undefined, r("ForcedRefs")) },
         { json: "appBuildId", js: "appBuildId", typ: 3.14 },
         { json: "backupLimit", js: "backupLimit", typ: 0 },
         { json: "backupOnSave", js: "backupOnSave", typ: true },
+        { json: "backupRelPath", js: "backupRelPath", typ: u(undefined, u(null, "")) },
         { json: "bgColor", js: "bgColor", typ: "" },
+        { json: "customCommands", js: "customCommands", typ: a(r("LdtkCustomCommand")) },
+        { json: "defaultEntityHeight", js: "defaultEntityHeight", typ: 0 },
+        { json: "defaultEntityWidth", js: "defaultEntityWidth", typ: 0 },
         { json: "defaultGridSize", js: "defaultGridSize", typ: 0 },
         { json: "defaultLevelBgColor", js: "defaultLevelBgColor", typ: "" },
         { json: "defaultLevelHeight", js: "defaultLevelHeight", typ: u(undefined, u(0, null)) },
@@ -1657,11 +1889,14 @@ const typeMap: any = {
         { json: "defaultPivotX", js: "defaultPivotX", typ: 3.14 },
         { json: "defaultPivotY", js: "defaultPivotY", typ: 3.14 },
         { json: "defs", js: "defs", typ: r("Definitions") },
+        { json: "dummyWorldIid", js: "dummyWorldIid", typ: "" },
+        { json: "exportLevelBg", js: "exportLevelBg", typ: true },
         { json: "exportPng", js: "exportPng", typ: u(undefined, u(true, null)) },
         { json: "exportTiled", js: "exportTiled", typ: true },
         { json: "externalLevels", js: "externalLevels", typ: true },
         { json: "flags", js: "flags", typ: a(r("Flag")) },
         { json: "identifierStyle", js: "identifierStyle", typ: r("IdentifierStyle") },
+        { json: "iid", js: "iid", typ: "" },
         { json: "imageExportMode", js: "imageExportMode", typ: r("ImageExportMode") },
         { json: "jsonVersion", js: "jsonVersion", typ: "" },
         { json: "levelNamePattern", js: "levelNamePattern", typ: "" },
@@ -1670,6 +1905,7 @@ const typeMap: any = {
         { json: "nextUid", js: "nextUid", typ: 0 },
         { json: "pngFilePattern", js: "pngFilePattern", typ: u(undefined, u(null, "")) },
         { json: "simplifiedExport", js: "simplifiedExport", typ: true },
+        { json: "toc", js: "toc", typ: a(r("LdtkTableOfContentEntry")) },
         { json: "tutorialDesc", js: "tutorialDesc", typ: u(undefined, u(null, "")) },
         { json: "worldGridHeight", js: "worldGridHeight", typ: u(undefined, u(0, null)) },
         { json: "worldGridWidth", js: "worldGridWidth", typ: u(undefined, u(0, null)) },
@@ -1679,23 +1915,26 @@ const typeMap: any = {
     "ForcedRefs": o([
         { json: "AutoLayerRuleGroup", js: "AutoLayerRuleGroup", typ: u(undefined, r("AutoLayerRuleGroup")) },
         { json: "AutoRuleDef", js: "AutoRuleDef", typ: u(undefined, r("AutoLayerRuleDefinition")) },
+        { json: "CustomCommand", js: "CustomCommand", typ: u(undefined, r("LdtkCustomCommand")) },
         { json: "Definitions", js: "Definitions", typ: u(undefined, r("Definitions")) },
         { json: "EntityDef", js: "EntityDef", typ: u(undefined, r("EntityDefinition")) },
         { json: "EntityInstance", js: "EntityInstance", typ: u(undefined, r("EntityInstance")) },
-        { json: "EntityReferenceInfos", js: "EntityReferenceInfos", typ: u(undefined, r("FieldInstanceEntityReference")) },
+        { json: "EntityReferenceInfos", js: "EntityReferenceInfos", typ: u(undefined, r("ReferenceToAnEntityInstance")) },
         { json: "EnumDef", js: "EnumDef", typ: u(undefined, r("EnumDefinition")) },
         { json: "EnumDefValues", js: "EnumDefValues", typ: u(undefined, r("EnumValueDefinition")) },
         { json: "EnumTagValue", js: "EnumTagValue", typ: u(undefined, r("EnumTagValue")) },
         { json: "FieldDef", js: "FieldDef", typ: u(undefined, r("FieldDefinition")) },
         { json: "FieldInstance", js: "FieldInstance", typ: u(undefined, r("FieldInstance")) },
-        { json: "GridPoint", js: "GridPoint", typ: u(undefined, r("FieldInstanceGridPoint")) },
+        { json: "GridPoint", js: "GridPoint", typ: u(undefined, r("GridPoint")) },
         { json: "IntGridValueDef", js: "IntGridValueDef", typ: u(undefined, r("IntGridValueDefinition")) },
+        { json: "IntGridValueGroupDef", js: "IntGridValueGroupDef", typ: u(undefined, r("IntGridValueGroupDefinition")) },
         { json: "IntGridValueInstance", js: "IntGridValueInstance", typ: u(undefined, r("IntGridValueInstance")) },
         { json: "LayerDef", js: "LayerDef", typ: u(undefined, r("LayerDefinition")) },
         { json: "LayerInstance", js: "LayerInstance", typ: u(undefined, r("LayerInstance")) },
         { json: "Level", js: "Level", typ: u(undefined, r("Level")) },
         { json: "LevelBgPosInfos", js: "LevelBgPosInfos", typ: u(undefined, r("LevelBackgroundPosition")) },
         { json: "NeighbourLevel", js: "NeighbourLevel", typ: u(undefined, r("NeighbourLevel")) },
+        { json: "TableOfContentEntry", js: "TableOfContentEntry", typ: u(undefined, r("LdtkTableOfContentEntry")) },
         { json: "Tile", js: "Tile", typ: u(undefined, r("TileInstance")) },
         { json: "TileCustomMetadata", js: "TileCustomMetadata", typ: u(undefined, r("TileCustomMetadata")) },
         { json: "TilesetDef", js: "TilesetDef", typ: u(undefined, r("TilesetDefinition")) },
@@ -1705,13 +1944,24 @@ const typeMap: any = {
     "AutoLayerRuleGroup": o([
         { json: "active", js: "active", typ: true },
         { json: "collapsed", js: "collapsed", typ: u(undefined, u(true, null)) },
+        { json: "color", js: "color", typ: u(undefined, u(null, "")) },
+        { json: "icon", js: "icon", typ: u(undefined, u(r("TilesetRectangle"), null)) },
         { json: "isOptional", js: "isOptional", typ: true },
         { json: "name", js: "name", typ: "" },
         { json: "rules", js: "rules", typ: a(r("AutoLayerRuleDefinition")) },
         { json: "uid", js: "uid", typ: 0 },
+        { json: "usesWizard", js: "usesWizard", typ: true },
+    ], false),
+    "TilesetRectangle": o([
+        { json: "h", js: "h", typ: 0 },
+        { json: "tilesetUid", js: "tilesetUid", typ: 0 },
+        { json: "w", js: "w", typ: 0 },
+        { json: "x", js: "x", typ: 0 },
+        { json: "y", js: "y", typ: 0 },
     ], false),
     "AutoLayerRuleDefinition": o([
         { json: "active", js: "active", typ: true },
+        { json: "alpha", js: "alpha", typ: 3.14 },
         { json: "breakOnMatch", js: "breakOnMatch", typ: true },
         { json: "chance", js: "chance", typ: 3.14 },
         { json: "checker", js: "checker", typ: r("Checker") },
@@ -1728,11 +1978,21 @@ const typeMap: any = {
         { json: "size", js: "size", typ: 0 },
         { json: "tileIds", js: "tileIds", typ: a(0) },
         { json: "tileMode", js: "tileMode", typ: r("TileMode") },
+        { json: "tileRandomXMax", js: "tileRandomXMax", typ: 0 },
+        { json: "tileRandomXMin", js: "tileRandomXMin", typ: 0 },
+        { json: "tileRandomYMax", js: "tileRandomYMax", typ: 0 },
+        { json: "tileRandomYMin", js: "tileRandomYMin", typ: 0 },
+        { json: "tileXOffset", js: "tileXOffset", typ: 0 },
+        { json: "tileYOffset", js: "tileYOffset", typ: 0 },
         { json: "uid", js: "uid", typ: 0 },
         { json: "xModulo", js: "xModulo", typ: 0 },
         { json: "xOffset", js: "xOffset", typ: 0 },
         { json: "yModulo", js: "yModulo", typ: 0 },
         { json: "yOffset", js: "yOffset", typ: 0 },
+    ], false),
+    "LdtkCustomCommand": o([
+        { json: "command", js: "command", typ: "" },
+        { json: "when", js: "when", typ: r("When") },
     ], false),
     "Definitions": o([
         { json: "entities", js: "entities", typ: a(r("EntityDefinition")) },
@@ -1744,6 +2004,8 @@ const typeMap: any = {
     ], false),
     "EntityDefinition": o([
         { json: "color", js: "color", typ: "" },
+        { json: "doc", js: "doc", typ: u(undefined, u(null, "")) },
+        { json: "exportToToc", js: "exportToToc", typ: true },
         { json: "fieldDefs", js: "fieldDefs", typ: a(r("FieldDefinition")) },
         { json: "fillOpacity", js: "fillOpacity", typ: 3.14 },
         { json: "height", js: "height", typ: 0 },
@@ -1754,6 +2016,10 @@ const typeMap: any = {
         { json: "limitScope", js: "limitScope", typ: r("LimitScope") },
         { json: "lineOpacity", js: "lineOpacity", typ: 3.14 },
         { json: "maxCount", js: "maxCount", typ: 0 },
+        { json: "maxHeight", js: "maxHeight", typ: u(undefined, u(0, null)) },
+        { json: "maxWidth", js: "maxWidth", typ: u(undefined, u(0, null)) },
+        { json: "minHeight", js: "minHeight", typ: u(undefined, u(0, null)) },
+        { json: "minWidth", js: "minWidth", typ: u(undefined, u(0, null)) },
         { json: "nineSliceBorders", js: "nineSliceBorders", typ: a(0) },
         { json: "pivotX", js: "pivotX", typ: 3.14 },
         { json: "pivotY", js: "pivotY", typ: 3.14 },
@@ -1768,12 +2034,14 @@ const typeMap: any = {
         { json: "tileRenderMode", js: "tileRenderMode", typ: r("TileRenderMode") },
         { json: "tilesetId", js: "tilesetId", typ: u(undefined, u(0, null)) },
         { json: "uid", js: "uid", typ: 0 },
+        { json: "uiTileRect", js: "uiTileRect", typ: u(undefined, u(r("TilesetRectangle"), null)) },
         { json: "width", js: "width", typ: 0 },
     ], false),
     "FieldDefinition": o([
         { json: "__type", js: "__type", typ: "" },
         { json: "acceptFileTypes", js: "acceptFileTypes", typ: u(undefined, u(a(""), null)) },
         { json: "allowedRefs", js: "allowedRefs", typ: r("AllowedRefs") },
+        { json: "allowedRefsEntityUid", js: "allowedRefsEntityUid", typ: u(undefined, u(0, null)) },
         { json: "allowedRefTags", js: "allowedRefTags", typ: a("") },
         { json: "allowOutOfLevelRef", js: "allowOutOfLevelRef", typ: true },
         { json: "arrayMaxLength", js: "arrayMaxLength", typ: u(undefined, u(0, null)) },
@@ -1781,10 +2049,15 @@ const typeMap: any = {
         { json: "autoChainRef", js: "autoChainRef", typ: true },
         { json: "canBeNull", js: "canBeNull", typ: true },
         { json: "defaultOverride", js: "defaultOverride", typ: u(undefined, "any") },
+        { json: "doc", js: "doc", typ: u(undefined, u(null, "")) },
         { json: "editorAlwaysShow", js: "editorAlwaysShow", typ: true },
         { json: "editorCutLongValues", js: "editorCutLongValues", typ: true },
+        { json: "editorDisplayColor", js: "editorDisplayColor", typ: u(undefined, u(null, "")) },
         { json: "editorDisplayMode", js: "editorDisplayMode", typ: r("EditorDisplayMode") },
         { json: "editorDisplayPos", js: "editorDisplayPos", typ: r("EditorDisplayPos") },
+        { json: "editorDisplayScale", js: "editorDisplayScale", typ: 3.14 },
+        { json: "editorLinkStyle", js: "editorLinkStyle", typ: r("EditorLinkStyle") },
+        { json: "editorShowInWorld", js: "editorShowInWorld", typ: true },
         { json: "editorTextPrefix", js: "editorTextPrefix", typ: u(undefined, u(null, "")) },
         { json: "editorTextSuffix", js: "editorTextSuffix", typ: u(undefined, u(null, "")) },
         { json: "identifier", js: "identifier", typ: "" },
@@ -1798,13 +2071,6 @@ const typeMap: any = {
         { json: "type", js: "type", typ: "" },
         { json: "uid", js: "uid", typ: 0 },
         { json: "useForSmartColor", js: "useForSmartColor", typ: true },
-    ], false),
-    "TilesetRectangle": o([
-        { json: "h", js: "h", typ: 0 },
-        { json: "tilesetUid", js: "tilesetUid", typ: 0 },
-        { json: "w", js: "w", typ: 0 },
-        { json: "x", js: "x", typ: 0 },
-        { json: "y", js: "y", typ: 0 },
     ], false),
     "EnumDefinition": o([
         { json: "externalFileChecksum", js: "externalFileChecksum", typ: u(undefined, u(null, "")) },
@@ -1820,13 +2086,16 @@ const typeMap: any = {
         { json: "color", js: "color", typ: 0 },
         { json: "id", js: "id", typ: "" },
         { json: "tileId", js: "tileId", typ: u(undefined, u(0, null)) },
+        { json: "tileRect", js: "tileRect", typ: u(undefined, u(r("TilesetRectangle"), null)) },
     ], false),
     "LayerDefinition": o([
         { json: "__type", js: "__type", typ: "" },
         { json: "autoRuleGroups", js: "autoRuleGroups", typ: a(r("AutoLayerRuleGroup")) },
         { json: "autoSourceLayerDefUid", js: "autoSourceLayerDefUid", typ: u(undefined, u(0, null)) },
         { json: "autoTilesetDefUid", js: "autoTilesetDefUid", typ: u(undefined, u(0, null)) },
+        { json: "canSelectWhenInactive", js: "canSelectWhenInactive", typ: true },
         { json: "displayOpacity", js: "displayOpacity", typ: 3.14 },
+        { json: "doc", js: "doc", typ: u(undefined, u(null, "")) },
         { json: "excludedTags", js: "excludedTags", typ: a("") },
         { json: "gridSize", js: "gridSize", typ: 0 },
         { json: "guideGridHei", js: "guideGridHei", typ: 0 },
@@ -1836,22 +2105,32 @@ const typeMap: any = {
         { json: "identifier", js: "identifier", typ: "" },
         { json: "inactiveOpacity", js: "inactiveOpacity", typ: 3.14 },
         { json: "intGridValues", js: "intGridValues", typ: a(r("IntGridValueDefinition")) },
+        { json: "intGridValuesGroups", js: "intGridValuesGroups", typ: a(r("IntGridValueGroupDefinition")) },
         { json: "parallaxFactorX", js: "parallaxFactorX", typ: 3.14 },
         { json: "parallaxFactorY", js: "parallaxFactorY", typ: 3.14 },
         { json: "parallaxScaling", js: "parallaxScaling", typ: true },
         { json: "pxOffsetX", js: "pxOffsetX", typ: 0 },
         { json: "pxOffsetY", js: "pxOffsetY", typ: 0 },
+        { json: "renderInWorldView", js: "renderInWorldView", typ: true },
         { json: "requiredTags", js: "requiredTags", typ: a("") },
         { json: "tilePivotX", js: "tilePivotX", typ: 3.14 },
         { json: "tilePivotY", js: "tilePivotY", typ: 3.14 },
         { json: "tilesetDefUid", js: "tilesetDefUid", typ: u(undefined, u(0, null)) },
         { json: "type", js: "type", typ: r("Type") },
+        { json: "uiColor", js: "uiColor", typ: u(undefined, u(null, "")) },
         { json: "uid", js: "uid", typ: 0 },
     ], false),
     "IntGridValueDefinition": o([
         { json: "color", js: "color", typ: "" },
+        { json: "groupUid", js: "groupUid", typ: 0 },
         { json: "identifier", js: "identifier", typ: u(undefined, u(null, "")) },
+        { json: "tile", js: "tile", typ: u(undefined, u(r("TilesetRectangle"), null)) },
         { json: "value", js: "value", typ: 0 },
+    ], false),
+    "IntGridValueGroupDefinition": o([
+        { json: "color", js: "color", typ: u(undefined, u(null, "")) },
+        { json: "identifier", js: "identifier", typ: u(undefined, u(null, "")) },
+        { json: "uid", js: "uid", typ: 0 },
     ], false),
     "TilesetDefinition": o([
         { json: "__cHei", js: "__cHei", typ: 0 },
@@ -1887,6 +2166,8 @@ const typeMap: any = {
         { json: "__smartColor", js: "__smartColor", typ: "" },
         { json: "__tags", js: "__tags", typ: a("") },
         { json: "__tile", js: "__tile", typ: u(undefined, u(r("TilesetRectangle"), null)) },
+        { json: "__worldX", js: "__worldX", typ: 0 },
+        { json: "__worldY", js: "__worldY", typ: 0 },
         { json: "defUid", js: "defUid", typ: 0 },
         { json: "fieldInstances", js: "fieldInstances", typ: a(r("FieldInstance")) },
         { json: "height", js: "height", typ: 0 },
@@ -1902,13 +2183,13 @@ const typeMap: any = {
         { json: "defUid", js: "defUid", typ: 0 },
         { json: "realEditorValues", js: "realEditorValues", typ: a("any") },
     ], false),
-    "FieldInstanceEntityReference": o([
+    "ReferenceToAnEntityInstance": o([
         { json: "entityIid", js: "entityIid", typ: "" },
         { json: "layerIid", js: "layerIid", typ: "" },
         { json: "levelIid", js: "levelIid", typ: "" },
         { json: "worldIid", js: "worldIid", typ: "" },
     ], false),
-    "FieldInstanceGridPoint": o([
+    "GridPoint": o([
         { json: "cx", js: "cx", typ: 0 },
         { json: "cy", js: "cy", typ: 0 },
     ], false),
@@ -1943,6 +2224,7 @@ const typeMap: any = {
         { json: "visible", js: "visible", typ: true },
     ], false),
     "TileInstance": o([
+        { json: "a", js: "a", typ: 3.14 },
         { json: "d", js: "d", typ: a(0) },
         { json: "f", js: "f", typ: 0 },
         { json: "px", js: "px", typ: a(0) },
@@ -1980,7 +2262,11 @@ const typeMap: any = {
     "NeighbourLevel": o([
         { json: "dir", js: "dir", typ: "" },
         { json: "levelIid", js: "levelIid", typ: "" },
-        { json: "levelUid", js: "levelUid", typ: u(undefined, 0) },
+        { json: "levelUid", js: "levelUid", typ: u(undefined, u(0, null)) },
+    ], false),
+    "LdtkTableOfContentEntry": o([
+        { json: "identifier", js: "identifier", typ: "" },
+        { json: "instances", js: "instances", typ: a(r("ReferenceToAnEntityInstance")) },
     ], false),
     "World": o([
         { json: "defaultLevelHeight", js: "defaultLevelHeight", typ: 0 },
@@ -2001,9 +2287,16 @@ const typeMap: any = {
         "Single",
         "Stamp",
     ],
+    "When": [
+        "AfterLoad",
+        "AfterSave",
+        "BeforeSave",
+        "Manual",
+    ],
     "AllowedRefs": [
         "Any",
         "OnlySame",
+        "OnlySpecificEntity",
         "OnlyTags",
     ],
     "EditorDisplayMode": [
@@ -2011,6 +2304,7 @@ const typeMap: any = {
         "ArrayCountWithLabel",
         "EntityTile",
         "Hidden",
+        "LevelTile",
         "NameAndValue",
         "PointPath",
         "PointPathLoop",
@@ -2026,6 +2320,13 @@ const typeMap: any = {
         "Above",
         "Beneath",
         "Center",
+    ],
+    "EditorLinkStyle": [
+        "ArrowsLine",
+        "CurvedArrow",
+        "DashedLine",
+        "StraightArrow",
+        "ZigZag",
     ],
     "TextLanguageMode": [
         "LangC",
@@ -2077,7 +2378,8 @@ const typeMap: any = {
         "Contain",
         "Cover",
         "CoverDirty",
-        'Unscaled',
+        "Repeat",
+        "Unscaled",
     ],
     "WorldLayout": [
         "Free",
