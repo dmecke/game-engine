@@ -1,7 +1,7 @@
 import AnimationType from './AnimationType';
 
 export default class Animation {
-    private timer = 0;
+    timer = 0;
     private frameChangedCallbacks: ((frame: number) => void)[] = [];
     private endedCallbacks: (() => void)[] = [];
 
