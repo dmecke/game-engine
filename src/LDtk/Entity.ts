@@ -3,7 +3,7 @@ import Vector from '../Math/Vector';
 
 export default class Entity {
     constructor(
-        private readonly id: string,
+        readonly id: string,
         public name: string,
         public position: Vector,
         readonly offset: Vector,
