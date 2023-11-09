@@ -4,7 +4,7 @@ import Vector from '../Math/Vector';
 import clamp from '../Math/clamp';
 
 export default class Camera {
-    target: { position: Vector }|null = null;
+    target: { position: Vector, id?: string }|null = null;
     position = Vector.null();
     screenShake = new ScreenShake(Vector.null(), 0);
 
