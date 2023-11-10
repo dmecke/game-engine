@@ -19,6 +19,10 @@ export default class AnimationType {
         return this.definition.frameDuration;
     }
 
+    get loops(): boolean {
+        return this.definition?.loops ?? true;
+    }
+
     directionMapping(direction: CompassDirection): number {
         switch (this.definition.directionMapping) {
             case 'diagonally':

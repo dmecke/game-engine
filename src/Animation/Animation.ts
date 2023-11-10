@@ -4,6 +4,7 @@ export default class Animation {
     timer = 0;
     private frameChangedCallbacks: ((frame: number) => void)[] = [];
     private endedCallbacks: (() => void)[] = [];
+    private ended = false;
 
     constructor(
         private _type: AnimationType,
@@ -19,12 +20,20 @@ export default class Animation {
     }
 
     update(): void {
+        if (this.ended) {
+            return;
+        }
+
         this.timer++;
         if (this.timer % this.type.frameDuration === 0) {
             this.frameChangedCallbacks.forEach(callback => callback(this.index));
         }
         if (this.timer % (this.type.frames * this.type.frameDuration) === 0) {
             this.endedCallbacks.forEach(callback => callback());
+            if (!this._type.loops) {
+                this.ended = true;
+                this.timer--;
+            }
         }
     }
 
