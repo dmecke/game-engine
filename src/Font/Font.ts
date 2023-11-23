@@ -7,6 +7,7 @@ import Vector from '../Math/Vector';
 
 export default class Font {
     private position = Vector.null();
+    private _style: string;
     private _align = TextAlign.left;
     private _width = new Map<string, number>();
     private _wrap: number|null = null;
@@ -17,12 +18,20 @@ export default class Font {
 
     constructor(
         private readonly fontFace: FontFace,
+        defaultStyle = 'black',
     ) {
         this.glyphs = fontFace.glyphs.flat();
+        this._style = defaultStyle;
     }
 
     at(position: Vector): this {
         this.position = position;
+
+        return this;
+    }
+
+    style(style: string): this {
+        this._style = style;
 
         return this;
     }
@@ -86,7 +95,7 @@ export default class Font {
                 lineWidth += glyph.width + 1;
             }
             ImageLoader.instance.fromName(
-                this.fontFace.image,
+                `fonts/${this.fontFace.name}/${this._style}.png`,
                 this.getGlyphPosition(glyph),
                 new Vector(glyph.width, this.fontFace.height),
                 position,
@@ -168,5 +177,9 @@ export default class Font {
 
     getHeight(): number {
         return this.fontFace.height;
+    }
+
+    getStyle(): string {
+        return this._style;
     }
 }
