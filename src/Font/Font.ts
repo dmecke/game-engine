@@ -182,4 +182,8 @@ export default class Font {
     getStyle(): string {
         return this._style;
     }
+
+    supportsCharacter(character: string): boolean {
+        return this.glyphs.some(glyph => glyph.char === character);
+    }
 }
