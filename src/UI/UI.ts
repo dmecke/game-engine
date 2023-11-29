@@ -95,7 +95,7 @@ export default class UI {
         return new NineSlice(this.panelImage, this.panelMargin, area);
     }
 
-    createLabel(text: string, position: Vector, align: TextAlign = TextAlign.left, style: string|undefined): Label {
+    createLabel(text: string, position: Vector, align: TextAlign = TextAlign.left, style?: string): Label {
         return new Label(this.font, text, position, align, style ?? this.font.getStyle());
     }
 
