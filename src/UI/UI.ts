@@ -8,6 +8,7 @@ import NineSliceMargin from './NineSliceMargin';
 import PressedState from '../Input/PressedState';
 import TextAlign from '../Font/TextAlign';
 import TextButton from './TextButton';
+import TextField from './TextField';
 import Toggle from './Toggle';
 import Vector from '../Math/Vector';
 
@@ -16,6 +17,7 @@ export default class UI {
     private _mouse: Mouse|null = null;
     private _mouseState: PressedState|null = null;
     private _buttonImage: HTMLImageElement|null = null;
+    private _textFieldImage: HTMLImageElement|null = null;
     private _panelImage: HTMLImageElement|null = null;
     private _panelMargin: NineSliceMargin|null = null;
 
@@ -67,6 +69,18 @@ export default class UI {
         return this._buttonImage;
     }
 
+    set textFieldImage(textFieldImage: HTMLImageElement) {
+        this._textFieldImage = textFieldImage;
+    }
+
+    get textFieldImage(): HTMLImageElement {
+        if (this._textFieldImage === null) {
+            throw new Error('UI: Text field image is not initialized.');
+        }
+
+        return this._textFieldImage;
+    }
+
     set panelImage(panelImage: HTMLImageElement) {
         this._panelImage = panelImage;
     }
@@ -105,6 +119,10 @@ export default class UI {
 
     createIconButton(image: HTMLImageElement, position: Vector, callback: () => void): IconButton {
         return new IconButton(image, this.mouse, this.mouseState, position, callback);
+    }
+
+    createTextField(position: Vector, value: string): TextField {
+        return new TextField(this.font, this.textFieldImage, position, value, this.mouse, this.mouseState);
     }
 
     createToggle(imageEnabled: HTMLImageElement, imageDisabled: HTMLImageElement, position: Vector, callback: () => void): Toggle {
