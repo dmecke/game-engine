@@ -9,6 +9,7 @@ export default class TextField {
     private _selected = false;
     private readonly onChangeListeners: (() => void)[] = [];
     private readonly onSelectedListeners: (() => void)[] = [];
+    private controller = new AbortController();
 
     constructor(
         private readonly font: Font,
@@ -34,7 +35,11 @@ export default class TextField {
 
                 this.value = this.value += char.toLowerCase();
             }
-        });
+        }, { signal: this.controller.signal });
+    }
+
+    remove(): void {
+        this.controller.abort();
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
