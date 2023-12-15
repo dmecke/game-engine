@@ -1,4 +1,5 @@
 import Rng from './Rng';
+import clamp from './clamp';
 
 export default class Range {
     constructor(
@@ -8,6 +9,10 @@ export default class Range {
         if (min > max) {
             throw new Error(`Min value of range must not be bigger than max value: ${min} -> ${max}.`);
         }
+    }
+
+    clamp(value: number): number {
+        return clamp(value, this.min, this.max);
     }
 
     randomFloatBetween(): number {

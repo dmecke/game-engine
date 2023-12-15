@@ -15,4 +15,14 @@ describe('Range', () => {
             expect(randomFloat).toBeLessThanOrEqual(range.max);
         }
     });
+
+    it('clamps a value to the range', () => {
+        const range = new Range(3, 5);
+
+        expect(range.clamp(2)).toBe(3);
+        expect(range.clamp(3)).toBe(3);
+        expect(range.clamp(4)).toBe(4);
+        expect(range.clamp(5)).toBe(5);
+        expect(range.clamp(6)).toBe(5);
+    });
 });
