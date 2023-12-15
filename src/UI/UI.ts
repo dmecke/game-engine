@@ -6,6 +6,8 @@ import Mouse from '../Input/Mouse';
 import NineSlice from './NineSlice';
 import NineSliceMargin from './NineSliceMargin';
 import PressedState from '../Input/PressedState';
+import Range from '../Math/Range';
+import Slider from './Slider';
 import TextAlign from '../Font/TextAlign';
 import TextButton from './TextButton';
 import TextField from './TextField';
@@ -20,6 +22,8 @@ export default class UI {
     private _textFieldImage: HTMLImageElement|null = null;
     private _panelImage: HTMLImageElement|null = null;
     private _panelMargin: NineSliceMargin|null = null;
+    private _sliderImage: HTMLImageElement|null = null;
+    private _sliderHandleImage: HTMLImageElement|null = null;
 
     set font(font: Font) {
         this._font = font;
@@ -93,6 +97,30 @@ export default class UI {
         return this._panelImage;
     }
 
+    get sliderImage(): HTMLImageElement {
+        if (this._sliderImage === null) {
+            throw new Error('UI: Slider image is not initialized.');
+        }
+
+        return this._sliderImage;
+    }
+
+    set sliderImage(sliderImage: HTMLImageElement) {
+        this._sliderImage = sliderImage;
+    }
+
+    get sliderHandleImage(): HTMLImageElement {
+        if (this._sliderHandleImage === null) {
+            throw new Error('UI: Slider handle image is not initialized.');
+        }
+
+        return this._sliderHandleImage;
+    }
+
+    set sliderHandleImage(sliderHandleImage: HTMLImageElement) {
+        this._sliderHandleImage = sliderHandleImage;
+    }
+
     set panelMargin(panelMargin: NineSliceMargin) {
         this._panelMargin = panelMargin;
     }
@@ -127,5 +155,9 @@ export default class UI {
 
     createToggle(imageEnabled: HTMLImageElement, imageDisabled: HTMLImageElement, position: Vector, callback: () => void): Toggle {
         return new Toggle(imageEnabled, imageDisabled, this.mouse, this.mouseState, position, callback);
+    }
+
+    createSlider(position: Vector, range: Range, width: number, value: number): Slider {
+        return new Slider(this.sliderImage, this.sliderHandleImage, this.mouse, this.mouseState, position, range, width, value);
     }
 }
