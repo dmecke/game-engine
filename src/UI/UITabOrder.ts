@@ -1,10 +1,10 @@
 import PressedState from '../Input/PressedState';
 
 export default class UITabOrder {
-    private nodes: { selected: boolean, trigger: () => void }[] = [];
+    private nodes: { selected: boolean, trigger?: () => void }[] = [];
     private index = 0;
 
-    add(node: { selected: boolean, trigger: () => void }): void {
+    add(node: { selected: boolean, trigger?: () => void }): void {
         this.nodes.push(node);
     }
 
@@ -25,8 +25,12 @@ export default class UITabOrder {
 
         this.nodes.forEach((node, index) => node.selected = this.index === index);
 
-        if (trigger.once) {
-            this.nodes[this.index].trigger();
+        if (trigger.once && this.selectedNode.trigger) {
+            this.selectedNode.trigger();
         }
+    }
+
+    private get selectedNode(): { selected: boolean, trigger?: () => void } {
+        return this.nodes[this.index];
     }
 }
