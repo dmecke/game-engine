@@ -7,6 +7,7 @@ import Vector from '../Math/Vector';
 
 export default class Slider {
     private readonly onChangeListeners: (() => void)[] = [];
+    selected = false;
 
     private readonly backgroundLeft: CanvasSprite;
     private readonly backgroundCenter: CanvasSprite;
@@ -55,7 +56,7 @@ export default class Slider {
 
         new CanvasSprite(
             this.handle,
-            this.isHovered ? new Vector(this.handle.width / 2, 0) : Vector.null(),
+            this.isHovered || this.selected ? new Vector(this.handle.width / 2, 0) : Vector.null(),
             new Vector(this.handle.width / 2, this.handle.height),
             this.handlePosition,
         ).draw(ctx);
