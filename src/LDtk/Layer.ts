@@ -16,8 +16,9 @@ export default class Layer {
         tiles.forEach(tile => {
             const position = new Vector(tile.px[0] / this.layer.__gridSize, tile.px[1] / this.layer.__gridSize);
             const offset = new Vector(tile.src[0] / this.layer.__gridSize, tile.src[1] / this.layer.__gridSize);
+            const tags = tileset?.getTagsFor(tile.t) ?? [];
             const metadata = tileset?.getMetadataFor(tile.t) ?? {};
-            this.tiles.set(position.toString(), new Tile(offset.x + offset.y * this.layer.__cWid, position, offset, metadata));
+            this.tiles.set(position.toString(), new Tile(offset.x + offset.y * this.layer.__cWid, position, offset, tags, metadata));
         });
     }
 

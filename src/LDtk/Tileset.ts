@@ -1,16 +1,16 @@
 import {TilesetDefinition} from './quicktype';
 
 export default class Tileset {
+    private readonly enumTags = new Map<string, number[]>();
     private metadata = new Map<number, Record<string, unknown>>();
 
     constructor(
         private readonly tileset: TilesetDefinition,
     ) {
+        this.tileset.enumTags.forEach(enumTag => this.enumTags.set(enumTag.enumValueId, enumTag.tileIds));
         this.tileset.customData.forEach(customData => {
             try {
-                const metadata = this.metadata.get(customData.tileId) ?? {};
-                metadata['customData'] = JSON.parse(customData.data);
-                this.metadata.set(customData.tileId, metadata);
+                this.metadata.set(customData.tileId, JSON.parse(customData.data));
             } catch (e) {
                 console.error(`Could not parse custom data:\n${customData.data}`);
                 throw e;
@@ -20,6 +20,17 @@ export default class Tileset {
 
     get uid(): number {
         return this.tileset.uid;
+    }
+
+    getTagsFor(tileId: number): string[] {
+        const tags: string[] = [];
+        this.enumTags.forEach((tileIds, tag) => {
+            if (tileIds.includes(tileId)) {
+                tags.push(tag);
+            }
+        });
+
+        return tags;
     }
 
     getMetadataFor(tileId: number): Record<string, unknown> {

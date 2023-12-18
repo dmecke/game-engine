@@ -5,20 +5,8 @@ export default class Tile {
         readonly index: number,
         readonly position: Vector,
         readonly offset: Vector,
-        private readonly metadata: Record<string, unknown>,
+        readonly tags: string[],
+        readonly metadata: Record<string, unknown>,
     ) {
-    }
-
-    get animation(): { offset: Vector, speed: number }|null {
-        if (!this.metadata['animation']) {
-            return null;
-        }
-
-        const animation = this.metadata['animation'] as { offset: { x: number, y: number }, speed: number };
-
-        return {
-            offset: new Vector(animation['offset']['x'], animation['offset']['y']),
-            speed: animation['speed'],
-        };
     }
 }
