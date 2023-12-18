@@ -3,6 +3,7 @@ import AnimationType from './AnimationType';
 export default class Animation {
     timer = 0;
     private frameChangedCallbacks: ((frame: number) => void)[] = [];
+    private frameChangedToCallbacks: Map<number, (() => void)[]> = new Map();
     private endedCallbacks: (() => void)[] = [];
     private ended = false;
 
@@ -13,6 +14,16 @@ export default class Animation {
 
     onFrameChanged(callback: (frame: number) => void): void {
         this.frameChangedCallbacks.push(callback);
+    }
+
+    onFrameChangedTo(frame: number, callback: () => void): void {
+        let map = this.frameChangedToCallbacks.get(frame);
+        if (!map) {
+            map = [];
+        }
+        map.push(callback);
+
+        this.frameChangedToCallbacks.set(frame, map);
     }
 
     onEnded(callback: () => void): void {
@@ -27,6 +38,10 @@ export default class Animation {
         this.timer++;
         if (this.timer % this.type.frameDuration === 0) {
             this.frameChangedCallbacks.forEach(callback => callback(this.index));
+            const map = this.frameChangedToCallbacks.get(this.index);
+            if (map) {
+                map.forEach(callback => callback());
+            }
         }
         if (this.timer % (this.type.frames * this.type.frameDuration) === 0) {
             this.endedCallbacks.forEach(callback => callback());
@@ -53,6 +68,7 @@ export default class Animation {
         this._type = type;
         this.timer = 0;
         this.frameChangedCallbacks = [];
+        this.frameChangedToCallbacks = new Map();
         this.endedCallbacks = [];
     }
 }
