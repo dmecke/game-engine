@@ -14,6 +14,7 @@ export default class Canvas {
             throw new Error(`Could not find a canvas with id ${id}.`);
         }
         this.canvas = canvas;
+        this.canvas.oncontextmenu = () => false;
 
         this.nativeResolution = new Vector(
             parseInt(canvas.getAttribute('width')?.replace('px', '') ?? '') ?? 320,
