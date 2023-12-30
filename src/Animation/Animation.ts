@@ -70,5 +70,6 @@ export default class Animation {
         this.frameChangedCallbacks = [];
         this.frameChangedToCallbacks = new Map();
         this.endedCallbacks = [];
+        this.ended = false;
     }
 }
