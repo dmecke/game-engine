@@ -114,8 +114,9 @@ export interface LDtk {
     externalLevels: boolean;
     /**
      * An array containing various advanced flags (ie. options or other states). Possible
-     * values: `DiscardPreCsvIntGrid`, `ExportPreCsvIntGridFormat`, `IgnoreBackupSuggest`,
-     * `PrependIndexToLevelFileNames`, `MultiWorlds`, `UseMultilinesType`
+     * values: `DiscardPreCsvIntGrid`, `ExportOldTableOfContentData`,
+     * `ExportPreCsvIntGridFormat`, `IgnoreBackupSuggest`, `PrependIndexToLevelFileNames`,
+     * `MultiWorlds`, `UseMultilinesType`
      */
     flags: Flag[];
     /**
@@ -241,23 +242,26 @@ export interface ForcedRefs {
     TileCustomMetadata?:   TileCustomMetadata;
     TilesetDef?:           TilesetDefinition;
     TilesetRect?:          TilesetRectangle;
+    TocInstanceData?:      LdtkTocInstanceData;
     World?:                World;
     [property: string]: any;
 }
 
 export interface AutoLayerRuleGroup {
-    active: boolean;
+    active:               boolean;
+    biomeRequirementMode: number;
     /**
      * *This field was removed in 1.0.0 and should no longer be used.*
      */
-    collapsed?: boolean | null;
-    color?:     null | string;
-    icon?:      TilesetRectangle | null;
-    isOptional: boolean;
-    name:       string;
-    rules:      AutoLayerRuleDefinition[];
-    uid:        number;
-    usesWizard: boolean;
+    collapsed?:          boolean | null;
+    color?:              null | string;
+    icon?:               TilesetRectangle | null;
+    isOptional:          boolean;
+    name:                string;
+    requiredBiomeValues: string[];
+    rules:               AutoLayerRuleDefinition[];
+    uid:                 number;
+    usesWizard:          boolean;
 }
 
 /**
@@ -319,6 +323,10 @@ export interface AutoLayerRuleDefinition {
      */
     flipY: boolean;
     /**
+     * If TRUE, then the rule should be re-evaluated by the editor at one point
+     */
+    invalidated: boolean;
+    /**
      * Default IntGrid value when checking cells outside of level bounds
      */
     outOfBoundsValue?: number | null;
@@ -346,9 +354,10 @@ export interface AutoLayerRuleDefinition {
      */
     size: number;
     /**
-     * Array of all the tile IDs. They are used randomly or as stamps, based on `tileMode` value.
+     * **WARNING**: this deprecated value is no longer exported since version 1.5.0  Replaced
+     * by: `tileRectsIds`
      */
-    tileIds: number[];
+    tileIds?: number[] | null;
     /**
      * Defines how tileIds array is used Possible values: `Single`, `Stamp`
      */
@@ -369,6 +378,10 @@ export interface AutoLayerRuleDefinition {
      * Min random offset for Y tile pos
      */
     tileRandomYMin: number;
+    /**
+     * Array containing all the possible tile IDs rectangles (picked randomly).
+     */
+    tileRectsIds: Array<number[]>;
     /**
      * Tile X offset
      */
@@ -473,6 +486,10 @@ export interface Definitions {
 }
 
 export interface EntityDefinition {
+    /**
+     * If enabled, this entity is allowed to stay outside of the current level bounds
+     */
+    allowOutOfBounds: boolean;
     /**
      * Base entity color
      */
@@ -674,6 +691,11 @@ export interface FieldDefinition {
     editorTextPrefix?: null | string;
     editorTextSuffix?: null | string;
     /**
+     * If TRUE, the field value will be exported to the `toc` project JSON field. Only applies
+     * to Entity fields.
+     */
+    exportToToc: boolean;
+    /**
      * User defined unique identifier
      */
     identifier: string;
@@ -693,7 +715,11 @@ export interface FieldDefinition {
      * Optional regular expression that needs to be matched to accept values. Expected format:
      * `/some_reg_ex/g`, with optional "i" flag.
      */
-    regex?:         null | string;
+    regex?: null | string;
+    /**
+     * If enabled, this field will be searchable through LDtk command palette
+     */
+    searchable:     boolean;
     symmetricalRef: boolean;
     /**
      * Possible values: &lt;`null`&gt;, `LangPython`, `LangRuby`, `LangJS`, `LangLua`, `LangC`,
@@ -899,7 +925,9 @@ export interface LayerDefinition {
      * **WARNING**: this deprecated value is no longer exported since version 1.2.0  Replaced
      * by: `tilesetDefUid`
      */
-    autoTilesetDefUid?: number | null;
+    autoTilesetDefUid?:              number | null;
+    autoTilesKilledByOtherLayerUid?: number | null;
+    biomeFieldUid?:                  number | null;
     /**
      * Allow editor selections when the layer is not currently active.
      */
@@ -1014,6 +1042,14 @@ export interface LayerDefinition {
      * Unique Int identifier
      */
     uid: number;
+    /**
+     * Display tags
+     */
+    uiFilterTags: string[];
+    /**
+     * Asynchronous rendering option for large/complex layers
+     */
+    useAsyncRender: boolean;
 }
 
 /**
@@ -1190,13 +1226,13 @@ export interface EntityInstance {
      */
     __tile?: TilesetRectangle | null;
     /**
-     * X world coordinate in pixels
+     * X world coordinate in pixels. Only available in GridVania or Free world layouts.
      */
-    __worldX: number;
+    __worldX?: number | null;
     /**
-     * Y world coordinate in pixels
+     * Y world coordinate in pixels Only available in GridVania or Free world layouts.
      */
-    __worldY: number;
+    __worldY?: number | null;
     /**
      * Reference of the **Entity definition** UID
      */
@@ -1266,6 +1302,8 @@ export interface FieldInstance {
 
 /**
  * This object describes the "location" of an Entity instance in the project worlds.
+ *
+ * IID information of this instance
  */
 export interface ReferenceToAnEntityInstance {
     /**
@@ -1596,10 +1634,11 @@ export interface LevelBackgroundPosition {
  */
 export interface NeighbourLevel {
     /**
-     * A single lowercase character tipping on the level location (`n`orth, `s`outh, `w`est,
-     * `e`ast).<br/>  Since 1.4.0, this character value can also be `<` (neighbour depth is
-     * lower), `>` (neighbour depth is greater) or `o` (levels overlap and share the same world
-     * depth).
+     * A lowercase string tipping on the level location (`n`orth, `s`outh, `w`est,
+     * `e`ast).<br/>  Since 1.4.0, this value can also be `<` (neighbour depth is lower), `>`
+     * (neighbour depth is greater) or `o` (levels overlap and share the same world
+     * depth).<br/>  Since 1.5.3, this value can also be `nw`,`ne`,`sw` or `se` for levels only
+     * touching corners.
      */
     dir: string;
     /**
@@ -1623,7 +1662,28 @@ export enum BgPos {
 
 export interface LdtkTableOfContentEntry {
     identifier: string;
-    instances:  ReferenceToAnEntityInstance[];
+    /**
+     * **WARNING**: this deprecated value will be *removed* completely on version 1.7.0+
+     * Replaced by: `instancesData`
+     */
+    instances?:    ReferenceToAnEntityInstance[];
+    instancesData: LdtkTocInstanceData[];
+}
+
+export interface LdtkTocInstanceData {
+    /**
+     * An object containing the values of all entity fields with the `exportToToc` option
+     * enabled. This object typing depends on actual field value types.
+     */
+    fields: any;
+    heiPx:  number;
+    /**
+     * IID information of this instance
+     */
+    iids:   ReferenceToAnEntityInstance;
+    widPx:  number;
+    worldX: number;
+    worldY: number;
 }
 
 /**
@@ -1678,6 +1738,7 @@ export enum WorldLayout {
 
 export enum Flag {
     DiscardPreCSVIntGrid = "DiscardPreCsvIntGrid",
+    ExportOldTableOfContentData = "ExportOldTableOfContentData",
     ExportPreCSVIntGridFormat = "ExportPreCsvIntGridFormat",
     IgnoreBackupSuggest = "IgnoreBackupSuggest",
     MultiWorlds = "MultiWorlds",
@@ -1939,15 +2000,18 @@ const typeMap: any = {
         { json: "TileCustomMetadata", js: "TileCustomMetadata", typ: u(undefined, r("TileCustomMetadata")) },
         { json: "TilesetDef", js: "TilesetDef", typ: u(undefined, r("TilesetDefinition")) },
         { json: "TilesetRect", js: "TilesetRect", typ: u(undefined, r("TilesetRectangle")) },
+        { json: "TocInstanceData", js: "TocInstanceData", typ: u(undefined, r("LdtkTocInstanceData")) },
         { json: "World", js: "World", typ: u(undefined, r("World")) },
     ], "any"),
     "AutoLayerRuleGroup": o([
         { json: "active", js: "active", typ: true },
+        { json: "biomeRequirementMode", js: "biomeRequirementMode", typ: 0 },
         { json: "collapsed", js: "collapsed", typ: u(undefined, u(true, null)) },
         { json: "color", js: "color", typ: u(undefined, u(null, "")) },
         { json: "icon", js: "icon", typ: u(undefined, u(r("TilesetRectangle"), null)) },
         { json: "isOptional", js: "isOptional", typ: true },
         { json: "name", js: "name", typ: "" },
+        { json: "requiredBiomeValues", js: "requiredBiomeValues", typ: a("") },
         { json: "rules", js: "rules", typ: a(r("AutoLayerRuleDefinition")) },
         { json: "uid", js: "uid", typ: 0 },
         { json: "usesWizard", js: "usesWizard", typ: true },
@@ -1967,6 +2031,7 @@ const typeMap: any = {
         { json: "checker", js: "checker", typ: r("Checker") },
         { json: "flipX", js: "flipX", typ: true },
         { json: "flipY", js: "flipY", typ: true },
+        { json: "invalidated", js: "invalidated", typ: true },
         { json: "outOfBoundsValue", js: "outOfBoundsValue", typ: u(undefined, u(0, null)) },
         { json: "pattern", js: "pattern", typ: a(0) },
         { json: "perlinActive", js: "perlinActive", typ: true },
@@ -1976,12 +2041,13 @@ const typeMap: any = {
         { json: "pivotX", js: "pivotX", typ: 3.14 },
         { json: "pivotY", js: "pivotY", typ: 3.14 },
         { json: "size", js: "size", typ: 0 },
-        { json: "tileIds", js: "tileIds", typ: a(0) },
+        { json: "tileIds", js: "tileIds", typ: u(undefined, u(a(0), null)) },
         { json: "tileMode", js: "tileMode", typ: r("TileMode") },
         { json: "tileRandomXMax", js: "tileRandomXMax", typ: 0 },
         { json: "tileRandomXMin", js: "tileRandomXMin", typ: 0 },
         { json: "tileRandomYMax", js: "tileRandomYMax", typ: 0 },
         { json: "tileRandomYMin", js: "tileRandomYMin", typ: 0 },
+        { json: "tileRectsIds", js: "tileRectsIds", typ: a(a(0)) },
         { json: "tileXOffset", js: "tileXOffset", typ: 0 },
         { json: "tileYOffset", js: "tileYOffset", typ: 0 },
         { json: "uid", js: "uid", typ: 0 },
@@ -2003,6 +2069,7 @@ const typeMap: any = {
         { json: "tilesets", js: "tilesets", typ: a(r("TilesetDefinition")) },
     ], false),
     "EntityDefinition": o([
+        { json: "allowOutOfBounds", js: "allowOutOfBounds", typ: true },
         { json: "color", js: "color", typ: "" },
         { json: "doc", js: "doc", typ: u(undefined, u(null, "")) },
         { json: "exportToToc", js: "exportToToc", typ: true },
@@ -2060,11 +2127,13 @@ const typeMap: any = {
         { json: "editorShowInWorld", js: "editorShowInWorld", typ: true },
         { json: "editorTextPrefix", js: "editorTextPrefix", typ: u(undefined, u(null, "")) },
         { json: "editorTextSuffix", js: "editorTextSuffix", typ: u(undefined, u(null, "")) },
+        { json: "exportToToc", js: "exportToToc", typ: true },
         { json: "identifier", js: "identifier", typ: "" },
         { json: "isArray", js: "isArray", typ: true },
         { json: "max", js: "max", typ: u(undefined, u(3.14, null)) },
         { json: "min", js: "min", typ: u(undefined, u(3.14, null)) },
         { json: "regex", js: "regex", typ: u(undefined, u(null, "")) },
+        { json: "searchable", js: "searchable", typ: true },
         { json: "symmetricalRef", js: "symmetricalRef", typ: true },
         { json: "textLanguageMode", js: "textLanguageMode", typ: u(undefined, u(r("TextLanguageMode"), null)) },
         { json: "tilesetUid", js: "tilesetUid", typ: u(undefined, u(0, null)) },
@@ -2093,6 +2162,8 @@ const typeMap: any = {
         { json: "autoRuleGroups", js: "autoRuleGroups", typ: a(r("AutoLayerRuleGroup")) },
         { json: "autoSourceLayerDefUid", js: "autoSourceLayerDefUid", typ: u(undefined, u(0, null)) },
         { json: "autoTilesetDefUid", js: "autoTilesetDefUid", typ: u(undefined, u(0, null)) },
+        { json: "autoTilesKilledByOtherLayerUid", js: "autoTilesKilledByOtherLayerUid", typ: u(undefined, u(0, null)) },
+        { json: "biomeFieldUid", js: "biomeFieldUid", typ: u(undefined, u(0, null)) },
         { json: "canSelectWhenInactive", js: "canSelectWhenInactive", typ: true },
         { json: "displayOpacity", js: "displayOpacity", typ: 3.14 },
         { json: "doc", js: "doc", typ: u(undefined, u(null, "")) },
@@ -2119,6 +2190,8 @@ const typeMap: any = {
         { json: "type", js: "type", typ: r("Type") },
         { json: "uiColor", js: "uiColor", typ: u(undefined, u(null, "")) },
         { json: "uid", js: "uid", typ: 0 },
+        { json: "uiFilterTags", js: "uiFilterTags", typ: a("") },
+        { json: "useAsyncRender", js: "useAsyncRender", typ: true },
     ], false),
     "IntGridValueDefinition": o([
         { json: "color", js: "color", typ: "" },
@@ -2166,8 +2239,8 @@ const typeMap: any = {
         { json: "__smartColor", js: "__smartColor", typ: "" },
         { json: "__tags", js: "__tags", typ: a("") },
         { json: "__tile", js: "__tile", typ: u(undefined, u(r("TilesetRectangle"), null)) },
-        { json: "__worldX", js: "__worldX", typ: 0 },
-        { json: "__worldY", js: "__worldY", typ: 0 },
+        { json: "__worldX", js: "__worldX", typ: u(undefined, u(0, null)) },
+        { json: "__worldY", js: "__worldY", typ: u(undefined, u(0, null)) },
         { json: "defUid", js: "defUid", typ: 0 },
         { json: "fieldInstances", js: "fieldInstances", typ: a(r("FieldInstance")) },
         { json: "height", js: "height", typ: 0 },
@@ -2266,7 +2339,16 @@ const typeMap: any = {
     ], false),
     "LdtkTableOfContentEntry": o([
         { json: "identifier", js: "identifier", typ: "" },
-        { json: "instances", js: "instances", typ: a(r("ReferenceToAnEntityInstance")) },
+        { json: "instances", js: "instances", typ: u(undefined, a(r("ReferenceToAnEntityInstance"))) },
+        { json: "instancesData", js: "instancesData", typ: a(r("LdtkTocInstanceData")) },
+    ], false),
+    "LdtkTocInstanceData": o([
+        { json: "fields", js: "fields", typ: "any" },
+        { json: "heiPx", js: "heiPx", typ: 0 },
+        { json: "iids", js: "iids", typ: r("ReferenceToAnEntityInstance") },
+        { json: "widPx", js: "widPx", typ: 0 },
+        { json: "worldX", js: "worldX", typ: 0 },
+        { json: "worldY", js: "worldY", typ: 0 },
     ], false),
     "World": o([
         { json: "defaultLevelHeight", js: "defaultLevelHeight", typ: 0 },
@@ -2389,6 +2471,7 @@ const typeMap: any = {
     ],
     "Flag": [
         "DiscardPreCsvIntGrid",
+        "ExportOldTableOfContentData",
         "ExportPreCsvIntGridFormat",
         "IgnoreBackupSuggest",
         "MultiWorlds",
